@@ -25,6 +25,7 @@ public class ImageManipulator {
     public static final int      VIEW_MODE_ZOOM      = 5;
     public static final int      VIEW_MODE_PIXELIZE  = 6;
     public static final int      VIEW_MODE_POSTERIZE = 7;
+    public static final int      VIEW_MODE_CORNER_FINDER = 8;
 
     public CameraBridgeViewBase getmOpenCvCameraView() {
         return mOpenCvCameraView;
@@ -111,6 +112,20 @@ public class ImageManipulator {
 
         switch (viewMode) {
             case VIEW_MODE_RGBA:
+                break;
+
+            case VIEW_MODE_CORNER_FINDER:
+                // convert to hsv since we can better detect alike chrominance vs in rgb space
+                Imgproc.cvtColor(rgba, mIntermediateMat, Imgproc.COLOR_RGB2HSV_FULL);
+                // 0 <= h <= 360, 0 <= s <= 1, 0 <= v <= 1
+                int hTolerance = 5;
+                int svTolerance = 25;
+                Scalar lower = new Scalar(13 - hTolerance, 242 - svTolerance, 199 - svTolerance);
+                Scalar upper = new Scalar(13 + hTolerance, 242 + svTolerance, 199 + svTolerance);
+                // inrange outputs 8U1C set to white where it passes and black where it fails.
+                Core.inRange(mIntermediateMat, lower, upper, mIntermediateMat);
+                Imgproc.cvtColor(mIntermediateMat, mIntermediateMat, Imgproc.COLOR_GRAY2RGBA);
+                mIntermediateMat.copyTo(rgba);
                 break;
 
             case VIEW_MODE_HIST:

@@ -1,0 +1,4 @@
+trip word - BC5709 26*,95%,74%
+doub word - BC0F08 9*,96%,74%
+doub letter - 235462 194*,64%,38%
+trip letter - 515C17 70*,75%,36%

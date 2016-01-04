@@ -36,35 +36,68 @@ public class ImageManipulatorSystemTest extends ApplicationTestCase<Application>
         testRunTimestamp = Long.toString(System.currentTimeMillis());
     }
 
+    private static Mat inputMat;
+
     private ImageManipulator underTest;
-    private Bitmap inputBitmap;
-    private Mat inputMat;
 
     public void setUp() {
+        createApplication();
         if(firstTest) {
             firstTest = false;
-            createApplication();
-            inputBitmap = BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_1);
+
+            // get appropriate sample rate
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_1, options);
+            int inSampleSize = calculateInSampleSize(options, 1024, 1024);
+
+            options = new BitmapFactory.Options();
+            options.inSampleSize = inSampleSize;
+            Bitmap inputBitmap = BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_1, options);
             inputMat = new Mat();
             Utils.bitmapToMat(inputBitmap, inputMat);
         }
         underTest = new ImageManipulator();
-        underTest.onCameraViewStarted(inputBitmap.getWidth(), inputBitmap.getHeight());
+        underTest.onCameraViewStarted(inputMat.width(), inputMat.height());
     }
 
     public void testCanFilterForCorners() throws Throwable {
 
-        ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_HIST;
+        ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_CORNER_FINDER;
         Mat result = underTest.processMat(inputMat, null);
 
-        Bitmap resultBitmap = Bitmap.createBitmap(inputBitmap.getWidth(),
-                inputBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+
+        Bitmap resultBitmap = Bitmap.createBitmap(result.width(),
+                result.height(), Bitmap.Config.RGB_565);
         Utils.matToBitmap(result, resultBitmap);
 
         File file = writeBitmapToStorage(resultBitmap);
 
         assertNotNull(resultBitmap);
         assertNotNull(file);
+    }
+
+    private int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 
     private File writeBitmapToStorage(Bitmap bitmap) throws IOException {

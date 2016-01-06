@@ -15,7 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 
-public class ImageManipulationsActivity extends Activity implements CvCameraViewListener2 {
+public class ImageProcessingDebugActivity extends Activity implements CvCameraViewListener2 {
 
     private static final String  TAG                 = "OCVSample::Activity";
     private ImageManipulator imageManipulator = new ImageManipulator();
@@ -46,7 +46,7 @@ public class ImageManipulationsActivity extends Activity implements CvCameraView
         }
     };
 
-    public ImageManipulationsActivity() {
+    public ImageProcessingDebugActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
 

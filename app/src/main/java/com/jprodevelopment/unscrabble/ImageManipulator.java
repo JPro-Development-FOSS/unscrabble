@@ -118,10 +118,11 @@ public class ImageManipulator {
                 // convert to hsv since we can better detect alike chrominance vs in rgb space
                 Imgproc.cvtColor(rgba, mIntermediateMat, Imgproc.COLOR_RGB2HSV_FULL);
                 // 0 <= h <= 360, 0 <= s <= 1, 0 <= v <= 1
-                int hTolerance = 5;
-                int svTolerance = 25;
-                Scalar lower = new Scalar(13 - hTolerance, 242 - svTolerance, 199 - svTolerance);
-                Scalar upper = new Scalar(13 + hTolerance, 242 + svTolerance, 199 + svTolerance);
+                int hTolerance = 6;
+                // 26*,95%,74% to 26*,80%,85%
+                // for 8U HSV, H / 2, S * 255, V * 255
+                Scalar lower = new Scalar(12, 199, 174);
+                Scalar upper = new Scalar(20, 255, 230);
                 // inrange outputs 8U1C set to white where it passes and black where it fails.
                 Core.inRange(mIntermediateMat, lower, upper, mIntermediateMat);
                 Imgproc.cvtColor(mIntermediateMat, mIntermediateMat, Imgproc.COLOR_GRAY2RGBA);

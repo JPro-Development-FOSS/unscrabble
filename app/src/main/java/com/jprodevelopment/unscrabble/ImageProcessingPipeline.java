@@ -2,14 +2,21 @@ package com.jprodevelopment.unscrabble;
 
 import org.opencv.core.Mat;
 
-import java.util.List;
-
 public class ImageProcessingPipeline {
-    private List<PipelineStep> steps;
-    public Mat runPipeline(Mat intermediate) {
-        for(PipelineStep step : steps) {
-            intermediate = step.apply(intermediate);
+    private PipelineStep firstStep;
+    private PipelineStep lastStep;
+
+    public Mat runPipeline(Mat input) {
+        if(input == null || firstStep == null)
+            return new Mat();
+        return firstStep.apply(input);
+    }
+    public void addStep(PipelineStep step) {
+        if(firstStep == null) {
+            firstStep = lastStep = step;
+            return;
         }
-        return intermediate;
+        lastStep.addNextStep(step);
+        lastStep = step;
     }
 }

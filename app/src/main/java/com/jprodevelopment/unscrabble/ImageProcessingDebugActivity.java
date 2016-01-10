@@ -18,7 +18,7 @@ import android.view.WindowManager;
 public class ImageProcessingDebugActivity extends Activity implements CvCameraViewListener2 {
 
     private static final String  TAG                 = "OCVSample::Activity";
-    private ImageManipulator imageManipulator = new ImageManipulator();
+    //private ImageManipulator imageManipulator = new ImageManipulator();
 
     private MenuItem mItemPreviewRGBA;
     private MenuItem             mItemPreviewHist;
@@ -36,7 +36,7 @@ public class ImageProcessingDebugActivity extends Activity implements CvCameraVi
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    imageManipulator.getmOpenCvCameraView().enableView();
+                    //imageManipulator.getmOpenCvCameraView().enableView();
                 } break;
                 default:
                 {
@@ -59,17 +59,17 @@ public class ImageProcessingDebugActivity extends Activity implements CvCameraVi
 
         setContentView(R.layout.image_manipulations_surface_view);
 
-        imageManipulator.setmOpenCvCameraView((CameraBridgeViewBase) findViewById(R.id.image_manipulations_activity_surface_view));
-        imageManipulator.getmOpenCvCameraView().setVisibility(CameraBridgeViewBase.VISIBLE);
-        imageManipulator.getmOpenCvCameraView().setCvCameraViewListener(this);
+        //imageManipulator.setmOpenCvCameraView((CameraBridgeViewBase) findViewById(R.id.image_manipulations_activity_surface_view));
+        //imageManipulator.getmOpenCvCameraView().setVisibility(CameraBridgeViewBase.VISIBLE);
+        //imageManipulator.getmOpenCvCameraView().setCvCameraViewListener(this);
     }
 
     @Override
     public void onPause()
     {
         super.onPause();
-        if (imageManipulator.getmOpenCvCameraView() != null)
-            imageManipulator.getmOpenCvCameraView().disableView();
+        //if (imageManipulator.getmOpenCvCameraView() != null)
+        //    imageManipulator.getmOpenCvCameraView().disableView();
     }
 
     @Override
@@ -87,59 +87,31 @@ public class ImageProcessingDebugActivity extends Activity implements CvCameraVi
 
     public void onDestroy() {
         super.onDestroy();
-        if (imageManipulator.getmOpenCvCameraView() != null)
-            imageManipulator.getmOpenCvCameraView().disableView();
+        //if (imageManipulator.getmOpenCvCameraView() != null)
+        //    imageManipulator.getmOpenCvCameraView().disableView();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "called onCreateOptionsMenu");
         mItemPreviewRGBA  = menu.add("Preview RGBA");
-        mItemPreviewHist  = menu.add("Histograms");
-        mItemPreviewCanny = menu.add("Canny");
-        mItemPreviewSepia = menu.add("Sepia");
-        mItemPreviewSobel = menu.add("Sobel");
-        mItemPreviewZoom  = menu.add("Zoom");
-        mItemPreviewPixelize  = menu.add("Pixelize");
-        mItemPreviewPosterize = menu.add("Posterize");
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (item == mItemPreviewRGBA)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_RGBA;
-        if (item == mItemPreviewHist)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_HIST;
-        else if (item == mItemPreviewCanny)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_CANNY;
-        else if (item == mItemPreviewSepia)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_SEPIA;
-        else if (item == mItemPreviewSobel)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_SOBEL;
-        else if (item == mItemPreviewZoom)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_ZOOM;
-        else if (item == mItemPreviewPixelize)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_PIXELIZE;
-        else if (item == mItemPreviewPosterize)
-            ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_POSTERIZE;
         return true;
     }
 
     public void onCameraViewStarted(int width, int height) {
-        imageManipulator.onCameraViewStarted(width, height);
+        //imageManipulator.onCameraViewStarted(width, height);
     }
 
     public void onCameraViewStopped() {
-        // Explicitly deallocate Mats
-        if (imageManipulator.getmIntermediateMat() != null)
-            imageManipulator.getmIntermediateMat().release();
-
-        imageManipulator.setmIntermediateMat(null);
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return imageManipulator.onCameraFrame(inputFrame);
+        return null;//imageManipulator.onCameraFrame(inputFrame);
     }
 }

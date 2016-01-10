@@ -24,13 +24,13 @@ public class PrintDebugImageStep extends PipelineStep {
      *              the same run)
      */
     public PrintDebugImageStep(String prevStepName, String storageDir, String runId) {
-        super(prevStepName);
+        super(prevStepName + "_debug_print");
         this.unscrabbleStorageDir = storageDir + "/unscrabble";
         this.runId = runId;
     }
 
     @Override
-    public Mat apply(Mat input) {
+    public Mat process(Mat input) {
         Bitmap resultBitmap =
                 Bitmap.createBitmap(input.width(), input.height(), Bitmap.Config.RGB_565);
         Utils.matToBitmap(input, resultBitmap);

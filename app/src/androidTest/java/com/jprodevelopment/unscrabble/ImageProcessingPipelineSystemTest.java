@@ -3,17 +3,11 @@ package com.jprodevelopment.unscrabble;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Environment;
-import android.support.annotation.NonNull;
 import android.test.ApplicationTestCase;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * I wish that we could test this via Android unit tests run on the JVM, but there are two
@@ -23,14 +17,14 @@ import java.io.IOException;
  * forced to make these image manipulation tests full on activity tests (which run on the
  * emulator).
  */
-public class ImageManipulatorSystemTest extends ApplicationTestCase<Application> {
+public class ImageProcessingPipelineSystemTest extends ApplicationTestCase<Application> {
 
     private final String testRunTimestamp;
 
     /// JUnit3 has no "BeforeClass" facility
     private static boolean firstTest = true;
 
-    public ImageManipulatorSystemTest() {
+    public ImageProcessingPipelineSystemTest() {
         super(Application.class);
         OpenCVLoader.initDebug();
         testRunTimestamp = Long.toString(System.currentTimeMillis());
@@ -38,7 +32,7 @@ public class ImageManipulatorSystemTest extends ApplicationTestCase<Application>
 
     private static Mat inputMat;
 
-    private ImageManipulator underTest;
+    private ImageProcessingPipeline underTest;
 
     public void setUp() {
         createApplication();
@@ -57,24 +51,15 @@ public class ImageManipulatorSystemTest extends ApplicationTestCase<Application>
             inputMat = new Mat();
             Utils.bitmapToMat(inputBitmap, inputMat);
         }
-        underTest = new ImageManipulator();
-        underTest.onCameraViewStarted(inputMat.width(), inputMat.height());
+        // use a debug pipeline factory
+        underTest = new PipelineFactory(true, getApplication().getFilesDir().getAbsolutePath()).getPipeline();
     }
 
     public void testCanFilterForCorners() throws Throwable {
 
-        ImageManipulator.viewMode = ImageManipulator.VIEW_MODE_CORNER_FINDER;
-        Mat result = underTest.processMat(inputMat, null);
+        Mat result = underTest.runPipeline(inputMat);
 
-
-        Bitmap resultBitmap = Bitmap.createBitmap(result.width(),
-                result.height(), Bitmap.Config.RGB_565);
-        Utils.matToBitmap(result, resultBitmap);
-
-        File file = writeBitmapToStorage(resultBitmap);
-
-        assertNotNull(resultBitmap);
-        assertNotNull(file);
+        assertNotNull(result);
     }
 
     private int calculateInSampleSize(
@@ -98,19 +83,5 @@ public class ImageManipulatorSystemTest extends ApplicationTestCase<Application>
         }
 
         return inSampleSize;
-    }
-
-    private File writeBitmapToStorage(Bitmap bitmap) throws IOException {
-        String file_path = getApplication().getFilesDir().getAbsolutePath() + "/unscrabble";
-        File dir = new File(file_path);
-        if(!dir.exists())
-            dir.mkdirs();
-        File file = new File(dir, getName() + testRunTimestamp + ".png");
-        FileOutputStream fOut = new FileOutputStream(file);
-
-        bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
-        fOut.flush();
-        fOut.close();
-        return file;
     }
 }

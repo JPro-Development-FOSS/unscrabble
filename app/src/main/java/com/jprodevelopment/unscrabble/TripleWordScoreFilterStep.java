@@ -14,7 +14,7 @@ public class TripleWordScoreFilterStep extends PipelineStep {
     // private final Mat mIntermediateMat;
 
     public TripleWordScoreFilterStep() {
-        super("triple_worf_score_filter");
+        super("triple_word_score_filter");
         //mIntermediateMat = new Mat();
     }
 

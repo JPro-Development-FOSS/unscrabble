@@ -10,7 +10,18 @@ public class PipelineFactory {
     }
     public PipelineFactory(boolean captureDebugOutputImages, String outputStorageDir) {
         pipeline = new ImageProcessingPipeline();
+
         PipelineStep tripWordStp = new TripleWordScoreFilterStep();
+        addStep(captureDebugOutputImages, outputStorageDir, tripWordStp);
+
+        PipelineStep medianStp = new MedianFilterStep();
+        addStep(captureDebugOutputImages, outputStorageDir, medianStp);
+
+        PipelineStep gaussianStp = new GaussianBlurStep();
+        addStep(captureDebugOutputImages, outputStorageDir, gaussianStp);
+    }
+
+    private void addStep(boolean captureDebugOutputImages, String outputStorageDir, PipelineStep tripWordStp) {
         pipeline.addStep(tripWordStp);
         if(captureDebugOutputImages) {
             pipeline.addStep(new PrintDebugImageStep(
@@ -19,5 +30,6 @@ public class PipelineFactory {
                     Long.toString(System.currentTimeMillis())));
         }
     }
+
     public ImageProcessingPipeline getPipeline() { return pipeline; }
 }

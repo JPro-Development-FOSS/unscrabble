@@ -30,7 +30,7 @@ public abstract class PipelineStep {
                 if(next == null) {
                     return output;
                 } else {
-                    return next.apply(input);
+                    return next.apply(output);
                 }
             }
         }

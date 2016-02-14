@@ -11,14 +11,17 @@ public class PipelineFactory {
     public PipelineFactory(boolean captureDebugOutputImages, String outputStorageDir) {
         pipeline = new ImageProcessingPipeline();
 
-        PipelineStep tripWordStp = new TripleWordScoreFilterStep();
-        addStep(captureDebugOutputImages, outputStorageDir, tripWordStp);
+        PipelineStep tripWordStep = new TripleWordScoreFilterStep();
+        addStep(captureDebugOutputImages, outputStorageDir, tripWordStep);
 
-        PipelineStep medianStp = new MedianFilterStep();
-        addStep(captureDebugOutputImages, outputStorageDir, medianStp);
+        PipelineStep medianStep = new MedianFilterStep();
+        addStep(captureDebugOutputImages, outputStorageDir, medianStep);
 
-        PipelineStep gaussianStp = new GaussianBlurStep();
-        addStep(captureDebugOutputImages, outputStorageDir, gaussianStp);
+        PipelineStep gaussianStep = new GaussianBlurStep();
+        addStep(captureDebugOutputImages, outputStorageDir, gaussianStep);
+
+        PipelineStep grabBoardCornersStep = new GrabBoardCornersStep();
+        addStep(captureDebugOutputImages, outputStorageDir, grabBoardCornersStep);
     }
 
     private void addStep(boolean captureDebugOutputImages, String outputStorageDir, PipelineStep tripWordStp) {

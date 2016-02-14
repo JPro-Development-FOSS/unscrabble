@@ -4,6 +4,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -35,40 +36,36 @@ public class GrabBoardCornersStep extends PipelineStep {
 
         Imgproc.findContours(grayscale, contours, hierarchy,Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
 
-
-        // Find the convex hull
-        List<MatOfInt> hull = new ArrayList<MatOfInt>();
+        // Find the convex hull of all of the points (rough board outline)
+        MatOfInt hull = new MatOfInt();
+        List<Point> allPoints = new ArrayList<Point>();
         for(int i=0; i < contours.size(); i++){
-            hull.add(new MatOfInt());
-        }
-        for(int i=0; i < contours.size(); i++){
-            Imgproc.convexHull(contours.get(i), hull.get(i));
+            allPoints.addAll(contours.get(i).toList());
         }
 
-        // Convert MatOfInt to MatOfPoint for drawing convex hull
+        MatOfPoint allPointsMat = new MatOfPoint();
+        allPointsMat.fromList(allPoints);
+        Imgproc.convexHull(allPointsMat, hull);
 
-        // Loop over all contours
-        List<Point[]> hullpoints = new ArrayList<Point[]>();
-        for(int i=0; i < hull.size(); i++){
-            Point[] points = new Point[hull.get(i).rows()];
-
-            // Loop over all points that need to be hulled in current contour
-            for(int j=0; j < hull.get(i).rows(); j++){
-                int index = (int)hull.get(i).get(j, 0)[0];
-                points[j] = new Point(contours.get(i).get(index, 0)[0], contours.get(i).get(index, 0)[1]);
-            }
-
-            hullpoints.add(points);
+        Point[] points = new Point[hull.rows()];
+        for(int j=0; j < hull.rows(); j++){
+            int index = (int)hull.get(j, 0)[0];
+            points[j] = new Point(allPointsMat.get(index, 0)[0], allPointsMat.get(index, 0)[1]);
         }
+        MatOfPoint2f mop = new MatOfPoint2f();
+        mop.fromArray(points);
+        MatOfPoint2f approx = new MatOfPoint2f();
 
-        // Convert Point arrays into MatOfPoint
-        List<MatOfPoint> hullmop = new ArrayList<MatOfPoint>();
-        for(int i=0; i < hullpoints.size(); i++){
-            MatOfPoint mop = new MatOfPoint();
-            mop.fromArray(hullpoints.get(i));
-            hullmop.add(mop);
-        }
+        // approximate proportionally to the length of the convex hull
+        Imgproc.approxPolyDP(mop, approx, Imgproc.arcLength(mop, true) * 0.05, true);
+        MatOfPoint approxMop = new MatOfPoint();
+        approxMop.fromList(approx.toList());
 
+        // TODO(j): only take points that look like they're on a corner that is close to a right
+        // angle we want to walk away with only 4 corners
+
+        List<MatOfPoint> toDraw = new ArrayList<>();
+        toDraw.add(approxMop);
 
         // Draw contours + hull results
         Mat overlay = new Mat(grayscale.size(), CvType.CV_8UC3);
@@ -76,8 +73,8 @@ public class GrabBoardCornersStep extends PipelineStep {
         Scalar hullColor = new Scalar(255, 0, 0);   // Red
         for(int i=0; i < contours.size(); i++){
             Imgproc.drawContours(overlay, contours, i, contourColor, 10);
-            Imgproc.drawContours(overlay, hullmop, i, hullColor, 10);
         }
+        Imgproc.drawContours(overlay, toDraw, 0, hullColor, 10);
 
         return overlay;
     }

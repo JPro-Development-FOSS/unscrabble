@@ -11,8 +11,8 @@ import org.opencv.imgproc.Imgproc;
  */
 public class GaussianBlurStep extends PipelineStep {
 
-    public GaussianBlurStep() {
-        super("gaussian_blur");
+    public GaussianBlurStep(PipelineContext context) {
+        super("gaussian_blur", context);
     }
 
     /**

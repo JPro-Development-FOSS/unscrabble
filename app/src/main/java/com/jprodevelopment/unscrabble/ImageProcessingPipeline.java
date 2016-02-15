@@ -3,6 +3,7 @@ package com.jprodevelopment.unscrabble;
 import org.opencv.core.Mat;
 
 public class ImageProcessingPipeline {
+
     private PipelineStep firstStep;
     private PipelineStep lastStep;
 

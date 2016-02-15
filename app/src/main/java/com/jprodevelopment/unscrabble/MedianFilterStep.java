@@ -8,8 +8,8 @@ import org.opencv.imgproc.Imgproc;
  */
 public class MedianFilterStep extends PipelineStep {
 
-    public MedianFilterStep() {
-        super("median_filter");
+    public MedianFilterStep(PipelineContext context) {
+        super("median_filter", context);
     }
 
     /**

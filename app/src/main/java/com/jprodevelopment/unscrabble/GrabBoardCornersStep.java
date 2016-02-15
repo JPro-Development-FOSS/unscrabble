@@ -18,8 +18,8 @@ import java.util.List;
  */
 public class GrabBoardCornersStep extends PipelineStep {
 
-    public GrabBoardCornersStep() {
-        super("grab_corners");
+    public GrabBoardCornersStep(PipelineContext context) {
+        super("grab_corners", context);
     }
 
     /**
@@ -58,6 +58,7 @@ public class GrabBoardCornersStep extends PipelineStep {
 
         // approximate proportionally to the length of the convex hull
         Imgproc.approxPolyDP(mop, approx, Imgproc.arcLength(mop, true) * 0.05, true);
+        getContext().setCorners(approx);
         MatOfPoint approxMop = new MatOfPoint();
         approxMop.fromList(approx.toList());
 
@@ -77,5 +78,10 @@ public class GrabBoardCornersStep extends PipelineStep {
         Imgproc.drawContours(overlay, toDraw, 0, hullColor, 10);
 
         return overlay;
+    }
+
+    @Override
+    public boolean postSanityCheck(Mat input) {
+        return getContext().getCorners().rows() == 4;
     }
 }

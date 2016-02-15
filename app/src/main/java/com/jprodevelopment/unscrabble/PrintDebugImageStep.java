@@ -23,8 +23,8 @@ public class PrintDebugImageStep extends PipelineStep {
      * @param runId unique id for this run of the pipeline (used to group other debug images from
      *              the same run)
      */
-    public PrintDebugImageStep(String prevStepName, String storageDir, String runId) {
-        super(prevStepName + "_debug_print");
+    public PrintDebugImageStep(String prevStepName, String storageDir, String runId, PipelineContext context) {
+        super(prevStepName + "_debug_print", context);
         this.unscrabbleStorageDir = storageDir + "/unscrabble";
         this.runId = runId;
     }

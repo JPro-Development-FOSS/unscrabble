@@ -1,7 +1,8 @@
-package com.jprodevelopment.unscrabble;
+package com.jprodevelopment.unscrabble.step;
+
+import com.jprodevelopment.unscrabble.PipelineContext;
 
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 

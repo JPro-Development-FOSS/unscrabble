@@ -1,6 +1,8 @@
-package com.jprodevelopment.unscrabble;
+package com.jprodevelopment.unscrabble.step;
 
 import android.util.Log;
+
+import com.jprodevelopment.unscrabble.PipelineContext;
 
 import org.opencv.core.Mat;
 

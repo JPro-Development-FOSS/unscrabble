@@ -1,5 +1,14 @@
 package com.jprodevelopment.unscrabble;
 
+import com.jprodevelopment.unscrabble.step.GaussianBlurStep;
+import com.jprodevelopment.unscrabble.step.GrabBoardCornersStep;
+import com.jprodevelopment.unscrabble.step.MedianFilterStep;
+import com.jprodevelopment.unscrabble.step.PipelineStep;
+import com.jprodevelopment.unscrabble.step.PrintDebugImageStep;
+import com.jprodevelopment.unscrabble.step.RectifyBoardStep;
+import com.jprodevelopment.unscrabble.step.TileFilterStep;
+import com.jprodevelopment.unscrabble.step.TripleWordScoreFilterStep;
+
 /**
  * Describes the scrabble board image processing pipeline.
  */
@@ -27,6 +36,9 @@ public class PipelineFactory {
 
         PipelineStep rectifyBoardStep = new RectifyBoardStep(context);
         addStep(captureDebugOutputImages, outputStorageDir, rectifyBoardStep);
+
+        PipelineStep tileFilterStep = new TileFilterStep(context);
+        addStep(captureDebugOutputImages, outputStorageDir, tileFilterStep);
     }
 
     private void addStep(boolean captureDebugOutputImages, String outputStorageDir, PipelineStep tripWordStp) {

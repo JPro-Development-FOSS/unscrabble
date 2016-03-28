@@ -1,11 +1,11 @@
-package com.jprodevelopment.unscrabble;
+package com.jprodevelopment.unscrabble.step;
+
+import com.jprodevelopment.unscrabble.PipelineContext;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
@@ -41,22 +41,28 @@ public class RectifyBoardStep extends PipelineStep {
         MatOfPoint2f sortedCorners = sortCorners(corners, center);
 
         // Define the destination image
-        Mat rectified = new Mat(1200, 1200, CvType.CV_8UC3);
+        Mat rectifiedToDisplay = new Mat(1200, 1200, CvType.CV_8UC3);
+        getContext().setRectifiedBoard(new Mat(1200, 1200, CvType.CV_8UC3));
 
         // Corners of the destination image
         List<Point> quadPoints = new ArrayList<>();
         quadPoints.add(new Point(0, 0));
-        quadPoints.add(new Point(rectified.cols(), 0));
-        quadPoints.add(new Point(rectified.cols(), rectified.rows()));
-        quadPoints.add(new Point(0, rectified.rows()));
+        quadPoints.add(new Point(rectifiedToDisplay.cols(), 0));
+        quadPoints.add(new Point(rectifiedToDisplay.cols(), rectifiedToDisplay.rows()));
+        quadPoints.add(new Point(0, rectifiedToDisplay.rows()));
         MatOfPoint2f quadPointMat = new MatOfPoint2f();
         quadPointMat.fromList(quadPoints);
 
         // Get transformation matrix 4*1*CV_32SC2
         Mat transform = Imgproc.getPerspectiveTransform(sortedCorners, quadPointMat);
-        Imgproc.warpPerspective(unrectifiedBoard, rectified, transform, rectified.size());
+        Imgproc.warpPerspective(unrectifiedBoard, rectifiedToDisplay, transform, rectifiedToDisplay.size());
+        // also transform the real board that's in the context
+        Imgproc.warpPerspective(getContext().getOriginalBoard(),
+                                getContext().getRectifiedBoard(),
+                                transform,
+                                getContext().getRectifiedBoard().size());
 
-        return rectified;
+        return rectifiedToDisplay;
     }
 
 

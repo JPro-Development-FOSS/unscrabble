@@ -19,15 +19,12 @@ import org.opencv.core.Mat;
  */
 public class ImageProcessingPipelineSystemTest extends ApplicationTestCase<Application> {
 
-    private final String testRunTimestamp;
-
     /// JUnit3 has no "BeforeClass" facility
     private static boolean firstTest = true;
 
     public ImageProcessingPipelineSystemTest() {
         super(Application.class);
         OpenCVLoader.initDebug();
-        testRunTimestamp = Long.toString(System.currentTimeMillis());
     }
 
     private static Mat inputMat;
@@ -42,12 +39,12 @@ public class ImageProcessingPipelineSystemTest extends ApplicationTestCase<Appli
             // get appropriate sample rate
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
-            BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_1, options);
+            BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_2, options);
             int inSampleSize = calculateInSampleSize(options, 1024, 1024);
 
             options = new BitmapFactory.Options();
             options.inSampleSize = inSampleSize;
-            Bitmap inputBitmap = BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_1, options);
+            Bitmap inputBitmap = BitmapFactory.decodeResource(getApplication().getResources(), R.drawable.test_board_2, options);
             inputMat = new Mat();
             Utils.bitmapToMat(inputBitmap, inputMat);
         }

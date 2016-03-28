@@ -1,5 +1,7 @@
 package com.jprodevelopment.unscrabble;
 
+import com.jprodevelopment.unscrabble.step.PipelineStep;
+
 import org.opencv.core.Mat;
 
 public class ImageProcessingPipeline {

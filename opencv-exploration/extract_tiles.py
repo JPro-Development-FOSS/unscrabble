@@ -39,5 +39,10 @@ if __name__ == '__main__':
         to_col = (curr_col + 1) * tile_width * __COL_TWEAK_FACTOR
         tile = img[from_row:to_row, from_col:to_col]
         cv.imshow("in", tile)
-        cv.waitKey()
+        # kind of kludgy, but grab the char from input and overwrite any files in that location
+        try:
+          letter = chr(cv.waitKey())
+        except:
+          letter = "_"
+        cv.imwrite("{}.png".format(letter), tile)
     cv.destroyAllWindows() 			

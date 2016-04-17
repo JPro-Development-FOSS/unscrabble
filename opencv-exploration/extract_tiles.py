@@ -59,5 +59,6 @@ if __name__ == '__main__':
         if dry_run:
           print p
         else:
-          cv.imwrite(path, tile)
+          print "writing {}".format(p)
+          cv.imwrite(p, tile)
     cv.destroyAllWindows() 			

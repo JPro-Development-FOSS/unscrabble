@@ -12,8 +12,8 @@ __OUT_COLS = 91
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='split an image into NxM little images')
     parser.add_argument("-i", "--input", default='./', help="Input file.")
-    parser.add_argument("-r", "--rows", default=1, help="Rows.")
-    parser.add_argument("-c", "--columns", default=1, help="Columns.")
+    parser.add_argument("-r", "--rows", default=10, help="Rows.")
+    parser.add_argument("-c", "--columns", default=10, help="Columns.")
     # initial training scan seems to like rt = 1.008
     parser.add_argument("-rt", "--row_tweak", default=1, help="Linear factor to tweak row slicing.")
     parser.add_argument("-ct", "--column_tweak", default=1, help="Linear factor to tweak column slicing.")
@@ -31,8 +31,6 @@ if __name__ == '__main__':
     if img == None:
        print "Problem opening image"
        exit(1) 
-    #gray=cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    #cv.imshow("gray",gray)
     height, width, channels = img.shape
     print "input: {}".format(img.shape)
     print "rows: {} cols:{}".format(rows, cols)

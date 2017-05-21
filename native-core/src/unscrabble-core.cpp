@@ -17,24 +17,33 @@ int main()
 		return 1;
 	}
 
-	// Triple Word Score Filter
+	namedWindow("Grayscale", WINDOW_NORMAL);
+
+	// TripleWordScoreFilterStep
 	Mat hsv, grayscale;
 	cvtColor(sourceImage, hsv, COLOR_BGR2HSV_FULL);
 
 	// 0 <= h <= 360, 0 <= s <= 1, 0 <= v <= 1
-	// for 8U HSV, H / 2, S * 255, V * 255
+	// for 8U HSV, H / 2, S // 255, V // 255
 	Scalar lower(19, 199, 174), upper(36, 255, 230);
 	inRange(hsv, lower, upper, grayscale);
-	///////////////////////////
-
-	// Display gray image
-	namedWindow("Grayscale", WINDOW_NORMAL);
 	imshow("Grayscale", grayscale);
-
-	//Wait until any key is pressed
 	waitKey(0);
 
-	cout << "Closing ..." << endl;
+ 	// MedianFilterStep
+	medianBlur(grayscale, grayscale, 3);
+	imshow("Grayscale", grayscale);
+	waitKey(0);
+
+	// GaussianBlurStep
+	GaussianBlur(grayscale, grayscale, Size(9, 9), 2.0, 2.0);
+	imshow("Grayscale", grayscale);
+	waitKey(0);
+	
+ // GrabBoardCornersStep
+ // RectifyBoardStep
+ // TileFitlerStep
+	// Display gray image
 
 	return 0;
 }

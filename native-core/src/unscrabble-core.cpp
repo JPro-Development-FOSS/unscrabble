@@ -22,13 +22,13 @@ int main()
 	waitKey(0);
 
 	// TripleWordScoreFilterStep
-	Mat hsv, grayscale;
-	cvtColor(board, hsv, COLOR_BGR2HSV_FULL);
+	Mat boardHsv, grayscale;
+	cvtColor(board, boardHsv, COLOR_BGR2HSV_FULL);
 
 	// 0 <= h <= 360, 0 <= s <= 1, 0 <= v <= 1
 	// for 8U HSV, H / 2, S // 255, V // 255
 	Scalar lower(19, 199, 174), upper(36, 255, 230);
-	inRange(hsv, lower, upper, grayscale);
+	inRange(boardHsv, lower, upper, grayscale);
 	imshow("Grayscale", grayscale);
 	waitKey(0);
 
@@ -89,14 +89,25 @@ int main()
 	}
 	vector<Point2f> rectifiedCorners{Point2f(0, 0), Point2f(1200, 0), Point2f(1200, 1200), Point2f(0, 1200)};
 	Mat transform = getPerspectiveTransform(sortedCorners, rectifiedCorners);
-	warpPerspective(hsv, hsv, transform, rectified.size());
-	imshow("Grayscale", hsv);
+	warpPerspective(boardHsv, boardHsv, transform, boardHsv.size());
+	imshow("Grayscale", boardHsv);
 	waitKey(0);
 
  	// TileFitlerStep
-	inRange(hsv, Scalar(14, 92, 150), Scalar(44, 173, 208), hsv);
-	imshow("Grayscale", hsv);
+	inRange(boardHsv, Scalar(14, 92, 150), Scalar(44, 173, 208), boardHsv);
+	imshow("Grayscale", boardHsv);
 	waitKey(0);
+	Mat& grayTiles = boardHsv;
+
+	// Separate Tiles
+	int squareSize = 1200 / 15;
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			Mat tile = grayTiles(Rect2i(squareSize * i, squareSize * j, squareSize, squareSize));
+			imshow("Grayscale", tile);
+			waitKey(0);
+		}
+	}
 	
 	return 0;
 }

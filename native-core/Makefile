@@ -10,7 +10,7 @@ OBJ_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(CPP_FILES:.cpp=.o)))
 CXX          := g++
 WARNINGS     := -Wall -Wextra -ansi -pedantic
 INCLUDE_DIRS := -I./include
-CXXFLAGS     := $(WARNINGS) $(INCLUDE_DIRS) `pkg-config --cflags opencv` -O -std=c++11
+CXXFLAGS     := $(WARNINGS) $(INCLUDE_DIRS) `pkg-config --cflags opencv` -O -std=c++11 -ggdb
 LDLIBS       := `pkg-config --libs opencv`
 
 RM    := rm -f

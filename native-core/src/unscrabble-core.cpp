@@ -100,9 +100,8 @@ int main()
 	waitKey(0);
 	Mat& grayTiles = rectified;
 
+	// TODO(j): load all letters and make them small and gray.
 	Mat a = imread("res/tiles/a.png");
-
-	// Check if image was successfully read
 	if(a.empty())
 	{
 		cerr << "Could not read image a.png" << endl;
@@ -124,10 +123,14 @@ int main()
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
 			Mat tile = grayTiles(Rect2i(squareSize * i, squareSize * j, squareSize, squareSize));
-			// imshow("Grayscale", tile);
-			// waitKey(0);
+			// for (letter : letters)
+			//   template match
+			//   store result (top left pixel of matchTemplate result) in tile-specific max-heap
+			//   tagged with the letter
 		}
 	}
+
+	// overlay letters on to tiles to check out work
 	
 	return 0;
 }

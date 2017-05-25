@@ -89,23 +89,43 @@ int main()
 	}
 	vector<Point2f> rectifiedCorners{Point2f(0, 0), Point2f(1200, 0), Point2f(1200, 1200), Point2f(0, 1200)};
 	Mat transform = getPerspectiveTransform(sortedCorners, rectifiedCorners);
-	warpPerspective(boardHsv, boardHsv, transform, boardHsv.size());
-	imshow("Grayscale", boardHsv);
+	Mat rectified(1200, 1200, CV_8UC3);
+	warpPerspective(boardHsv, rectified, transform, rectified.size());
+	imshow("Grayscale", rectified);
 	waitKey(0);
 
  	// TileFitlerStep
-	inRange(boardHsv, Scalar(14, 92, 150), Scalar(44, 173, 208), boardHsv);
-	imshow("Grayscale", boardHsv);
+	inRange(rectified, Scalar(14, 92, 150), Scalar(44, 173, 208), rectified);
+	imshow("Grayscale", rectified);
 	waitKey(0);
-	Mat& grayTiles = boardHsv;
+	Mat& grayTiles = rectified;
+
+	Mat a = imread("res/tiles/a.png");
+
+	// Check if image was successfully read
+	if(a.empty())
+	{
+		cerr << "Could not read image a.png" << endl;
+		return 1;
+	}
+	Mat aGray, aGraySmall;
+	cvtColor(a, aGray, COLOR_BGR2GRAY);
+	int squareSize = 1200 / 15;
+	resize(aGray, aGraySmall, Size(squareSize, squareSize));
+	// imshow("Grayscale", aGraySmall);
+	// waitKey(0);
+
+	Mat matched;
+	matchTemplate(grayTiles, aGraySmall, matched, TM_CCORR_NORMED);
+	imshow("Grayscale", matched);
+	waitKey(0);
 
 	// Separate Tiles
-	int squareSize = 1200 / 15;
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
 			Mat tile = grayTiles(Rect2i(squareSize * i, squareSize * j, squareSize, squareSize));
-			imshow("Grayscale", tile);
-			waitKey(0);
+			// imshow("Grayscale", tile);
+			// waitKey(0);
 		}
 	}
 	

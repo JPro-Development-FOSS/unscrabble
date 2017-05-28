@@ -1,7 +1,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <dirent.h>
+#include <errno.h>
 #include <iostream>
+#include <string>
+#include <map>
 
 using namespace cv;
 using namespace std;
@@ -100,24 +104,45 @@ int main()
 	waitKey(0);
 	Mat& grayTiles = rectified;
 
-	// TODO(j): load all letters and make them small and gray.
-	Mat a = imread("res/tiles/a.png");
-	if(a.empty())
-	{
-		cerr << "Could not read image a.png" << endl;
-		return 1;
-	}
-	Mat aGray, aGraySmall;
-	cvtColor(a, aGray, COLOR_BGR2GRAY);
+	// load all letters and make them small and gray.
+	map<string, Mat> tiles;
 	int squareSize = 1200 / 15;
-	resize(aGray, aGraySmall, Size(squareSize, squareSize));
-	// imshow("Grayscale", aGraySmall);
-	// waitKey(0);
+	DIR *dp;
+	struct dirent *dirp;
+	if ((dp = opendir("res/tiles/")) == NULL) {
+		cout << "Error(" << errno << ") opening res/tiles/" << endl;
+		return errno;
+	}
+	while ((dirp = readdir(dp)) != NULL) {
+		string fname = string(dirp->d_name);
+		size_t found = fname.find(".png");
+		if (found == string::npos) {
+			cout << "skipping " << fname << endl;
+			continue;
+		}
+		cout << "importing " << fname << endl;
+		Mat rawTile, grayTile, tile;
+		rawTile = imread("res/tiles/" + fname);
+		cvtColor(rawTile, grayTile, COLOR_BGR2GRAY);
+		resize(grayTile, tile, Size(squareSize, squareSize));
+		tiles[fname] = tile;
+	}
+	closedir(dp);
 
+	// try matching each template. record the max match for each tile.
+	pair<string, int> matches[15][15];
 	Mat matched;
-	matchTemplate(grayTiles, aGraySmall, matched, TM_CCORR_NORMED);
-	imshow("Grayscale", matched);
-	waitKey(0);
+	for (auto it=tiles.begin(); it != tiles.end(); ++it) {
+		cout << "matching " << it->first << endl;
+		matchTemplate(grayTiles, it->second, matched, TM_CCORR_NORMED);
+		for (int i = 0; i < 15; i++) {
+			for (int j = 0; j < 15; j++) {
+				// record max at this tile
+			}
+		}
+		// imshow("Grayscale", it->second);
+		// waitKey(0);
+	}
 
 	// Separate Tiles
 	for (int i = 0; i < 15; i++) {

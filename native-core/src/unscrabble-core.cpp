@@ -95,14 +95,16 @@ int main()
 	Mat transform = getPerspectiveTransform(sortedCorners, rectifiedCorners);
 	Mat rectified(1200, 1200, CV_8UC3);
 	warpPerspective(boardHsv, rectified, transform, rectified.size());
+	warpPerspective(board, board, transform, rectified.size());
 	imshow("Grayscale", rectified);
+	imshow("Grayscale", board);
 	waitKey(0);
 
  	// TileFitlerStep
-	inRange(rectified, Scalar(14, 92, 150), Scalar(44, 173, 208), rectified);
-	imshow("Grayscale", rectified);
+	Mat grayTiles(1200, 1200, CV_8UC1);
+	inRange(rectified, Scalar(14, 92, 150), Scalar(44, 173, 208), grayTiles); // output is 8U1C
+	imshow("Grayscale", grayTiles);
 	waitKey(0);
-	Mat& grayTiles = rectified;
 
 	// load all letters and make them small and gray.
 	map<string, Mat> tiles;
@@ -130,32 +132,46 @@ int main()
 	closedir(dp);
 
 	// try matching each template. record the max match for each tile.
-	pair<string, int> matches[15][15];
+	pair<string, float> matches[15][15];
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			matches[i][j] = make_pair("dummy", 0);
+		}
+	}
 	Mat matched;
 	for (auto it=tiles.begin(); it != tiles.end(); ++it) {
 		cout << "matching " << it->first << endl;
 		matchTemplate(grayTiles, it->second, matched, TM_CCORR_NORMED);
+		// imshow("Grayscale", matched);
+		// waitKey(0);
+
 		for (int i = 0; i < 15; i++) {
 			for (int j = 0; j < 15; j++) {
 				// record max at this tile
+				float match = matched.at<float>(i*squareSize, j*squareSize);
+				if (match > matches[i][j].second) {
+					matches[i][j] = make_pair(it->first, match);
+				}
 			}
 		}
 		// imshow("Grayscale", it->second);
 		// waitKey(0);
 	}
-
-	// Separate Tiles
+	// overlay letters on to tiles to check out work
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
-			Mat tile = grayTiles(Rect2i(squareSize * i, squareSize * j, squareSize, squareSize));
-			// for (letter : letters)
-			//   template match
-			//   store result (top left pixel of matchTemplate result) in tile-specific max-heap
-			//   tagged with the letter
+			cout << matches[i][j].first << ", ";
+			putText(board,
+				matches[i][j].first.substr(0,1),
+				Point(i*squareSize, (1+j)*squareSize),
+				FONT_HERSHEY_PLAIN,
+				1.0,
+				Scalar(255, 0, 0));
 		}
+		cout << endl;
 	}
-
-	// overlay letters on to tiles to check out work
+	imshow("Grayscale", board);
+	waitKey(0);
 	
 	return 0;
 }

@@ -152,6 +152,26 @@ int main()
 		// imshow("Grayscale", it->second);
 		// waitKey(0);
 	}
+
+	// Eval and Display
+	string golden[15][15] = {
+		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
+		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
+		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
+		{"",  "",   "", "R", "B", "S", "E", "Q", "I", "X", "E", "S", "A",  "", ""},
+		{"",  "",   "", "R", "I", "F", "U", "E", "O", "E", "L", "Z", "T",  "", ""},
+		{"",  "",   "", "E", "A", "N", "S", "E", "E", "F", "L", "Y", "J",  "", ""},
+		{"",  "",   "", "U", "N", "R", "E", "A", "T", "O", " ", "E", "I",  "", ""},
+		{"",  "",   "", "N", "R", "O", "A", "W", "T", "H", "D", "D", "L",  "", ""},
+		{"",  "",   "", "E", "N", "L", "N", "G", "T", "A", "R", "T", "A",  "", ""},
+		{"",  "",   "", "W", "E", "K", "M", "I", "Y", "G", "D", "N", "H",  "", ""},
+		{"",  "",   "", "O", "V", "A", "M", "G", "U", "I", "O", "U", "D",  "", ""},
+		{"",  "",   "", "R", "S", "V", "E", "P", "A", "O", "I", "P", "T",  "", ""},
+		{"",  "",   "", "C", "B", "A", "O", "I", "I", "I", " ", "C", "O",  "", ""},
+		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
+		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
+	};
+	int numCorrect = 0, numTotal = 15 * 15;
 	locale loc;
 	// overlay letters on to tiles to check out work
 	for (int i = 0; i < 15; i++) {
@@ -159,16 +179,22 @@ int main()
 			cout << matches[i][j].first << ", ";
 			string letter;
 			letter.push_back(toupper(matches[i][j].first[0], loc));
+			auto color = Scalar(0, 0, 255);
+			if (letter == golden[i][j]) {
+				numCorrect++;
+				color = Scalar(0, 255, 0);
+			}
 			putText(board,
 				letter,
-				Point(i*squareSize, (1+j)*squareSize),
+				Point(j*squareSize, (1+i)*squareSize), // TODO(j): why are coords transposed?
 				FONT_HERSHEY_PLAIN,
 				5.0,
-				Scalar(255, 0, 0),
+				color,
 				2);
 		}
 		cout << endl;
 	}
+	cout << "Accuracy: " << numCorrect << "/" << numTotal << ": " << numCorrect * 100 / numTotal << "%" << endl;
 	imshow("Grayscale", board);
 	waitKey(0);
 	

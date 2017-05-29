@@ -174,10 +174,13 @@ int main()
 	// generate a confusion matrix
 	vector<string> classes{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
 		"M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", ""};
-	map<string, map<string, int>> classCounts;
+	map<string, map<string, int>> confusion;
+	map<string, pair<int, int>> precision, recall;
 	for (const auto& i : classes) {
+		precision[i] = {0, 0};
+		recall[i] = {0, 0};
 		for (const auto& j : classes) {
-			classCounts[i][j] = 0;
+			confusion[i][j] = 0;
 		}
 	}
 	
@@ -201,7 +204,11 @@ int main()
 				5.0,
 				color,
 				2);
-			classCounts[golden[i][j]][letter]++;
+			confusion[golden[i][j]][letter]++;
+			precision[letter].first += (golden[i][j] == letter ? 1 : 0);
+			precision[letter].second++;
+			recall[golden[i][j]].first += (golden[i][j] == letter ? 1 : 0);
+			recall[golden[i][j]].second++;
 		}
 		cout << endl;
 	}
@@ -213,12 +220,24 @@ int main()
 	for (const auto& i : classes) {
 		cout << i << "  ";
 		for (const auto& j : classes) {
-			cout << classCounts[i][j] << "  ";
+			cout << confusion[i][j] << "  ";
 		}
 		cout << endl;
 	}
 
 	cout << "Accuracy: " << numCorrect << "/" << numTotal << ": " << numCorrect * 100 / numTotal << "%" << endl;
+	float totalP = 0, totalR = 0;
+	for (const auto& p : precision) {
+		if (p.second.second) {
+			totalP += ((float)p.second.first / p.second.second);
+		}
+	}
+	for (const auto& r : recall) {
+		if (r.second.second) {
+			totalR += ((float)r.second.first / r.second.second);
+		}
+	}
+	cout << "Precision: " << (totalP * 100) / 28 << "%, Recall: " << (totalR * 100) / 28 << "%" << endl;
 	imshow("Grayscale", board);
 	waitKey(0);
 	

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <limits>
+#include <locale>
 
 using namespace cv;
 using namespace std;
@@ -13,14 +15,6 @@ using namespace std;
 int main()
 {
 	Mat board = imread("res/test_board_2.jpg");
-
-	// Check if image was successfully read
-	if(board.empty())
-	{
-		cerr << "Could not read image" << endl;
-		return 1;
-	}
-
 	namedWindow("Grayscale", WINDOW_NORMAL);
 	imshow("Grayscale", board);
 	waitKey(0);
@@ -123,9 +117,10 @@ int main()
 			continue;
 		}
 		cout << "importing " << fname << endl;
-		Mat rawTile, grayTile, tile;
+		Mat rawTile, hsvTile, grayTile, tile;
 		rawTile = imread("res/tiles/" + fname);
-		cvtColor(rawTile, grayTile, COLOR_BGR2GRAY);
+		cvtColor(rawTile, hsvTile, COLOR_BGR2HSV_FULL);
+		inRange(hsvTile, Scalar(14, 92, 150), Scalar(44, 173, 208), grayTile); // output is 8U1C
 		resize(grayTile, tile, Size(squareSize, squareSize));
 		tiles[fname] = tile;
 	}
@@ -135,13 +130,13 @@ int main()
 	pair<string, float> matches[15][15];
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
-			matches[i][j] = make_pair("dummy", 0);
+			matches[i][j] = make_pair("dummy", numeric_limits<float>::max());
 		}
 	}
 	Mat matched;
 	for (auto it=tiles.begin(); it != tiles.end(); ++it) {
 		cout << "matching " << it->first << endl;
-		matchTemplate(grayTiles, it->second, matched, TM_CCORR_NORMED);
+		matchTemplate(grayTiles, it->second, matched, TM_SQDIFF);
 		// imshow("Grayscale", matched);
 		// waitKey(0);
 
@@ -149,7 +144,7 @@ int main()
 			for (int j = 0; j < 15; j++) {
 				// record max at this tile
 				float match = matched.at<float>(i*squareSize, j*squareSize);
-				if (match > matches[i][j].second) {
+				if (match < matches[i][j].second) {
 					matches[i][j] = make_pair(it->first, match);
 				}
 			}
@@ -157,16 +152,20 @@ int main()
 		// imshow("Grayscale", it->second);
 		// waitKey(0);
 	}
+	locale loc;
 	// overlay letters on to tiles to check out work
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
 			cout << matches[i][j].first << ", ";
+			string letter;
+			letter.push_back(toupper(matches[i][j].first[0], loc));
 			putText(board,
-				matches[i][j].first.substr(0,1),
+				letter,
 				Point(i*squareSize, (1+j)*squareSize),
 				FONT_HERSHEY_PLAIN,
-				1.0,
-				Scalar(255, 0, 0));
+				5.0,
+				Scalar(255, 0, 0),
+				2);
 		}
 		cout << endl;
 	}

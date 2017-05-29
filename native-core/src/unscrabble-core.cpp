@@ -171,6 +171,16 @@ int main()
 		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
 		{"",  "",   "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "",  "", ""},
 	};
+	// generate a confusion matrix
+	vector<string> classes{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
+		"M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", ""};
+	map<string, map<string, int>> classCounts;
+	for (const auto& i : classes) {
+		for (const auto& j : classes) {
+			classCounts[i][j] = 0;
+		}
+	}
+	
 	int numCorrect = 0, numTotal = 15 * 15;
 	locale loc;
 	// overlay letters on to tiles to check out work
@@ -191,9 +201,23 @@ int main()
 				5.0,
 				color,
 				2);
+			classCounts[golden[i][j]][letter]++;
 		}
 		cout << endl;
 	}
+	cout << "Confusion Matrix: " << endl << "   ";
+	for (const auto& c : classes) {
+		cout << c << "  ";
+	}
+	cout << endl;
+	for (const auto& i : classes) {
+		cout << i << "  ";
+		for (const auto& j : classes) {
+			cout << classCounts[i][j] << "  ";
+		}
+		cout << endl;
+	}
+
 	cout << "Accuracy: " << numCorrect << "/" << numTotal << ": " << numCorrect * 100 / numTotal << "%" << endl;
 	imshow("Grayscale", board);
 	waitKey(0);

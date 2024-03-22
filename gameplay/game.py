@@ -1,6 +1,8 @@
 import random
 import functools
 import operator
+import itertools
+from enum import Enum
 
 COLS = 15
 ROWS = COLS
@@ -100,6 +102,10 @@ class Game:
                 self.board,
                 '\n'.join(['{} p{}: {}'.format('*' if i == self.turn else ' ', i, p) for (i, p) in enumerate(self.players)]))
 
+class WordDirection(Enum):
+    RIGHT = 0
+    DOWN = 1
+
 class Player:
     def __init__(self, board, bag):
         self.board = board
@@ -107,17 +113,53 @@ class Player:
         self.letters = [bag.draw() for _ in range(7)]
 
     def do_the_thing(self):
-        pass
+        # permutations of letters
+        permutations = itertools.permutations(self.letters, len(self.letters))
+        max_score = -1
+        max_word = None
+        max_i = -1
+        max_j = -1
+        # each viable board space as starting point
+        for i in range(COLS):
+            for j in range(ROWS):
+                for permutation in permutations:
+                    for l in range(len(permutation)):
+                        # try words to the right
+                        # try words down
+                        # check dictionary
+                        # score, record max
+                        word = permutation[:l]
+                        score = self.board.score(i, j, word, WordDirection.RIGHT)
+                        if score > max_score:
+                            max_score = score
+                            max_word = word
+                            max_i = i
+                            max_j = j
+                        score = self.board.score(i, j, word, WordDirection.DOWN)
+                        if score > max_score:
+                            max_score = score
+                            max_word = word
+                            max_i = i
+                            max_j = j
+
+        # if viable word exists, play it. else give up (for now)
 
 
     def __str__(self):
         return ' '.join([str(letter) for letter in self.letters])
-        
 
 
-spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
-board = Board(spots)
-bag = Bag()
-players = [Player(board, bag) for _ in range(2)]
-game = Game(board, bag, players)
-print(game)
+def make_game():
+    spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
+    board = Board(spots)
+    bag = Bag()
+    players = [Player(board, bag) for _ in range(2)]
+    return Game(board, bag, players)
+
+if __name__ == '__main__':
+    spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
+    board = Board(spots)
+    bag = Bag()
+    players = [Player(board, bag) for _ in range(2)]
+    game = Game(board, bag, players)
+    print(game)

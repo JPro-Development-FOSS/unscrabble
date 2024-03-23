@@ -7,7 +7,7 @@ from enum import Enum
 COLS = 15
 ROWS = COLS
 LETTER_TO_POINT = {
-        ' ': 0,
+        '_': 0,
         'E': 1, 'A': 1, 'I': 1, 'O': 1, 'N': 1, 'R': 1, 'T': 1, 'L': 1, 'S': 1, 'U': 1,
         'D': 2, 'G': 2,
         'B': 3, 'C': 3, 'M': 3, 'P': 3,
@@ -41,8 +41,13 @@ class Board:
         self.spots = spots
 
     def empty(self):
-        return functools.reduce(operator._or, [spot.letter for spot in self.spots])
+        return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
+
+    def score(self, letters, i, j, direction):
+        # TODO: take multipliers and adjacent words into account
+        return functools.reduce(operator.add, [letter.points for letter in letters])
     
+
     def __str__(self):
         out = ''
         for row in self.spots:
@@ -52,7 +57,7 @@ class Board:
 class Bag:
     def __init__(self):
         self.bag = (
-                [Letter(' ')] * 2 +
+                [Letter('_')] * 2 +
                 [Letter('E')] * 12 +
                 [Letter('A')] * 9 +
                 [Letter('I')] * 9 +
@@ -106,6 +111,55 @@ class WordDirection(Enum):
     RIGHT = 0
     DOWN = 1
 
+class WordLoader:
+    def __init__(self, path):
+        self.words = set()
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                self.words.add(line.strip())
+
+
+class Solver:
+    def __init__(self, words):
+        self.words = words
+
+    def solve(self, board, letters):
+        print('board empty: {}'.format(board.empty()))
+        if board.empty():
+            # only deal with letters
+            permutations = itertools.permutations(letters, len(letters))
+            print('{} letters'.format(len(letters)))
+            count = 0
+            max_score = -1
+            max_word = None
+            max_word_str = None
+            max_i = -1
+            max_j = -1
+            # TODO loop
+            i = 7
+            j = 7
+            for permutation in permutations:
+                count += 1
+                for l in range(2, len(permutation)):
+                    word = permutation[:l]
+                    word_str = ''.join(letter.letter for letter in word)
+                    if word_str in self.words:
+                        score = board.score(word, i, j, WordDirection.RIGHT)
+                        if score > max_score:
+                            max_score = score
+                            max_word = word
+                            max_word_str = word_str
+                            max_i = i
+                            max_j = j
+                        score = board.score(word, i, j, WordDirection.DOWN)
+                        if score > max_score:
+                            max_score = score
+                            max_word = word
+                            max_word_str = word_str
+                            max_i = i
+                            max_j = j
+            print('best word: {}, points: {}'.format(max_word_str, max_score))
+
 class Player:
     def __init__(self, board, bag):
         self.board = board
@@ -115,10 +169,6 @@ class Player:
     def do_the_thing(self):
         # permutations of letters
         permutations = itertools.permutations(self.letters, len(self.letters))
-        max_score = -1
-        max_word = None
-        max_i = -1
-        max_j = -1
         # each viable board space as starting point
         for i in range(COLS):
             for j in range(ROWS):
@@ -129,18 +179,6 @@ class Player:
                         # check dictionary
                         # score, record max
                         word = permutation[:l]
-                        score = self.board.score(i, j, word, WordDirection.RIGHT)
-                        if score > max_score:
-                            max_score = score
-                            max_word = word
-                            max_i = i
-                            max_j = j
-                        score = self.board.score(i, j, word, WordDirection.DOWN)
-                        if score > max_score:
-                            max_score = score
-                            max_word = word
-                            max_i = i
-                            max_j = j
 
         # if viable word exists, play it. else give up (for now)
 

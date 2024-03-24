@@ -43,10 +43,86 @@ class Board:
     def empty(self):
         return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
 
-    def score(self, letters, i, j, direction):
+    def score(self, letters, board, i, j, direction):
         # TODO: take multipliers and adjacent words into account
         return functools.reduce(operator.add, [letter.points for letter in letters])
-    
+   
+    def reaches(self, num_letters, i, j, direction):
+        for k in range(num_letters):
+            if direction == WordDirection.RIGHT:
+                if j+k < COLS and self.spots[i][j+k].letter != None:
+                    return True
+                if j+k < COLS and i > 0 and self.spots[i-1][j+k].letter != None:
+                    return True
+                if j+k < COLS and i < ROWS-1 and self.spots[i+1][j+k].letter != None:
+                    return True
+            if direction == WordDirection.DOWN:
+                if i+k < ROWS and self.spots[i+k][j].letter != None:
+                    return True
+                if i+k < ROWS and j > 0 and self.spots[i+k][j-1].letter != None:
+                    return True
+                if i+k < ROWS and j < COLS-1 and self.spots[i+k][j+1].letter != None:
+                    return True
+        return False
+
+    def fits(self, num_letters, i, j, direction):
+        if self.spots[i][j].letter != None:
+            return False
+        remaining = COLS - num_letters
+        if direction == WordDirection.RIGHT:
+            for k in range(j, COLS):
+                if self.spots[i][k] != None:
+                    remaining -= 1
+        if direction == WordDirection.DOWN:
+            for k in range(i, ROWS):
+                if self.spots[k][j] != None:
+                    remaining -= 1
+        return remaining >= 0
+
+    def expand(self, letters, i, j, direction):
+        # opportunities for words when placing letters in direction:
+        # - placed letter creates word with adjacent (other direction)
+        # - all letters are placed (current direction)
+        # Note: track new letters for easy scoring
+        def gather_up(i, j):
+            k = 1
+            gathered = []
+            while i - k >= 0 and self.spots[i-k].letter != None:
+                gathered.append(self.spots[i-k][j].letter)
+                k += 1
+            return gathered
+        def gather_down(i, j):
+            k = 1
+            gathered = []
+            while i + k < ROWS and self.spots[i+k].letter != None:
+                gathered.append(self.spots[i+k][j].letter)
+                k += 1
+            return gathered
+        def gather_left(i, j):
+            k = 1
+            gathered = []
+            while j - k >= 0 and self.spots[i][j-k].letter != None:
+                gathered.append(self.spots[i][j-k].letter)
+                k += 1
+            return gathered
+        words=[]
+        k=0
+        if direction == WordDirection.RIGHT:
+            for letter in letters:
+                # TODO: gather up and down
+                up = gather_up(i, j)
+                down = gather_down(i, j)
+                if up or down:
+                    up.reverse()
+                    words.append(up + [letter] + down)
+                while self.spots[i][j+k] != None:
+                    k+=1
+
+            # TODO: gather left, use letters and gather right
+
+
+
+        return ''
 
     def __str__(self):
         out = ''
@@ -138,6 +214,7 @@ class Solver:
             # TODO loop
             i = 7
             j = 7
+            # TODO discover reachable letters for the given position and word length (or center for empty)
             for permutation in permutations:
                 count += 1
                 for l in range(2, len(permutation)):

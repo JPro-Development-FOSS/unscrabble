@@ -70,12 +70,14 @@ class Board:
             return False
         remaining = COLS - num_letters
         if direction == WordDirection.RIGHT:
+            remaining -= j
             for k in range(j, COLS):
-                if self.spots[i][k] != None:
+                if self.spots[i][k].letter != None:
                     remaining -= 1
         if direction == WordDirection.DOWN:
+            remaining -= i
             for k in range(i, ROWS):
-                if self.spots[k][j] != None:
+                if self.spots[k][j].letter != None:
                     remaining -= 1
         return remaining >= 0
 
@@ -221,14 +223,14 @@ class Solver:
                     word = permutation[:l]
                     word_str = ''.join(letter.letter for letter in word)
                     if word_str in self.words:
-                        score = board.score(word, i, j, WordDirection.RIGHT)
+                        score = board.score(word, board, i, j, WordDirection.RIGHT)
                         if score > max_score:
                             max_score = score
                             max_word = word
                             max_word_str = word_str
                             max_i = i
                             max_j = j
-                        score = board.score(word, i, j, WordDirection.DOWN)
+                        score = board.score(word, board, i, j, WordDirection.DOWN)
                         if score > max_score:
                             max_score = score
                             max_word = word

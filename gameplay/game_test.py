@@ -1,11 +1,11 @@
 import unittest
 import timeit
 
-from game import Player, WordLoader, Solver, WordDirection, Board, Game, Bag, Spot, ROWS, COLS, make_game
+from game import Player, WordLoader, Solver, WordDirection, Board, Game, Bag, Spot, ROWS, COLS, make_game, Letter
 
 def place_word(word, board, i, j, word_direction):
     for letter in word:
-        board.spots[i][j].letter = letter
+        board.spots[i][j].letter = Letter(letter)
         if word_direction == WordDirection.DOWN:
             i += 1
         else:
@@ -56,7 +56,15 @@ class TestGame(unittest.TestCase):
         print(board)
         self.assertFalse(board.fits(9, 6, 7, WordDirection.DOWN))
 
-
+    def test_expand(self):
+        spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
+        board = Board(spots)
+        bag = Bag()
+        player = Player(board, bag)
+        place_word('YEET', board, 7, 7, WordDirection.RIGHT)
+        expanded = board.expand([Letter('E'), Letter('R')], 7, 11, WordDirection.RIGHT)
+        print(expanded)
+        self.assertEqual([[Letter('Y'), Letter('E'), Letter('E'), Letter('T'), Letter('E'), Letter('R')]], expanded)
 
 if __name__ == '__main__':
     unittest.main()

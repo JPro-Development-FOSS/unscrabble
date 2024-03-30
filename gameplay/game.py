@@ -26,6 +26,9 @@ class Letter:
     def __str__(self):
         return '-' if self.letter is None else self.letter
 
+    def __eq__(self, other):
+        return other != None and self.letter == other.letter
+
 
 class Spot:
     def __init__(self, row, col):
@@ -43,9 +46,9 @@ class Board:
     def empty(self):
         return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
 
-    def score(self, letters, board, i, j, direction):
+    def score(self, word, board, i, j, direction):
         # TODO: take multipliers and adjacent words into account
-        return functools.reduce(operator.add, [letter.points for letter in letters])
+        return functools.reduce(operator.add, [letter.points for letter in word])
    
     def reaches(self, num_letters, i, j, direction):
         for k in range(num_letters):
@@ -89,14 +92,14 @@ class Board:
         def gather_up(i, j):
             k = 1
             gathered = []
-            while i - k >= 0 and self.spots[i-k].letter != None:
+            while i - k >= 0 and self.spots[i-k][j].letter != None:
                 gathered.append(self.spots[i-k][j].letter)
                 k += 1
             return gathered
         def gather_down(i, j):
             k = 1
             gathered = []
-            while i + k < ROWS and self.spots[i+k].letter != None:
+            while i + k < ROWS and self.spots[i+k][j].letter != None:
                 gathered.append(self.spots[i+k][j].letter)
                 k += 1
             return gathered
@@ -107,24 +110,44 @@ class Board:
                 gathered.append(self.spots[i][j-k].letter)
                 k += 1
             return gathered
+        def gather_right(i, j):
+            k = 1
+            gathered = []
+            while j + k < COLS and self.spots[i][j+k].letter != None:
+                gathered.append(self.spots[i][j+k].letter)
+                k += 1
+            return gathered
         words=[]
-        k=0
         if direction == WordDirection.RIGHT:
+            # gather adjacent words
+            k=0
             for letter in letters:
-                # TODO: gather up and down
-                up = gather_up(i, j)
-                down = gather_down(i, j)
+                up = gather_up(i, j+k)
+                down = gather_down(i, j+k)
                 if up or down:
                     up.reverse()
                     words.append(up + [letter] + down)
-                while self.spots[i][j+k] != None:
+                while self.spots[i][j+k].letter != None:
                     k+=1
+                k+=1
 
-            # TODO: gather left, use letters and gather right
+            # gather main word
+            word = gather_left(i, j)
+            word.reverse()
+            k=0
+            for letter in letters:
+                word.append(letter)
+                while self.spots[i][j+k].letter != None:
+                    word.append(self.spots[i][j+k].letter)
+                    k+=1
+                k+=1
+            word += gather_right(i, j+k)
+            words.append(word)
 
 
-
-        return ''
+        # return list of lists of tiles with each list being a word that should
+        # be scored. AKA the same tile could appear more than once.
+        return words
 
     def __str__(self):
         out = ''

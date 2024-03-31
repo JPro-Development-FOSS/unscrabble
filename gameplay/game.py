@@ -123,6 +123,9 @@ class Board:
             word.reverse()
             k=0
             for letter in letters:
+                while self.spots[i][j+k].letter != None:
+                    word.append(self.spots[i][j+k].letter)
+                    k+=1
                 # gather main word
                 word.append(letter)
                 # gather adjacent words
@@ -131,9 +134,6 @@ class Board:
                 if up or down:
                     up.reverse()
                     words.append(up + [letter] + down)
-                while self.spots[i][j+k].letter != None:
-                    word.append(self.spots[i][j+k].letter)
-                    k+=1
                 k+=1
             word += gather_right(i, j+k)
             words.append(word)
@@ -142,6 +142,9 @@ class Board:
             word.reverse()
             k=0
             for letter in letters:
+                while self.spots[i+k][j].letter != None:
+                    word.append(self.spots[i+k][j].letter)
+                    k+=1
                 # gather main word
                 word.append(letter)
                 # gather adjacent words
@@ -150,9 +153,6 @@ class Board:
                 if left or right:
                     left.reverse()
                     words.append(left + [letter] + right)
-                while self.spots[i+k][j].letter != None:
-                    word.append(self.spots[i+k][j].letter)
-                    k+=1
                 k+=1
             word += gather_down(i+k, j)
             words.append(word)

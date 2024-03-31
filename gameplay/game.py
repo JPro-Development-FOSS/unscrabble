@@ -119,31 +119,43 @@ class Board:
             return gathered
         words=[]
         if direction == WordDirection.RIGHT:
-            # gather adjacent words
+            word = gather_left(i, j)
+            word.reverse()
             k=0
             for letter in letters:
+                # gather main word
+                word.append(letter)
+                # gather adjacent words
                 up = gather_up(i, j+k)
                 down = gather_down(i, j+k)
                 if up or down:
                     up.reverse()
                     words.append(up + [letter] + down)
                 while self.spots[i][j+k].letter != None:
-                    k+=1
-                k+=1
-
-            # gather main word
-            word = gather_left(i, j)
-            word.reverse()
-            k=0
-            for letter in letters:
-                word.append(letter)
-                while self.spots[i][j+k].letter != None:
                     word.append(self.spots[i][j+k].letter)
                     k+=1
                 k+=1
             word += gather_right(i, j+k)
             words.append(word)
-
+        if direction == WordDirection.DOWN:
+            word = gather_up(i, j)
+            word.reverse()
+            k=0
+            for letter in letters:
+                # gather main word
+                word.append(letter)
+                # gather adjacent words
+                left = gather_left(i+k, j)
+                right = gather_right(i+k, j)
+                if left or right:
+                    left.reverse()
+                    words.append(left + [letter] + right)
+                while self.spots[i+k][j].letter != None:
+                    word.append(self.spots[i+k][j].letter)
+                    k+=1
+                k+=1
+            word += gather_down(i+k, j)
+            words.append(word)
 
         # return list of lists of tiles with each list being a word that should
         # be scored. AKA the same tile could appear more than once.

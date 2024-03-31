@@ -5,12 +5,20 @@ from game import Player, WordLoader, Solver, WordDirection, Board, Game, Bag, Sp
 
 def place_word(word, board, i, j, word_direction):
     for letter in word:
-        board.spots[i][j].letter = Letter(letter)
         if word_direction == WordDirection.DOWN:
+            while board.spots[i][j].letter != None:
+                i += 1
+            board.spots[i][j].letter = Letter(letter)
             i += 1
         else:
+            while board.spots[i][j].letter != None:
+                j += 1
+            board.spots[i][j].letter = Letter(letter)
             j += 1
 
+
+def letters(word):
+    return [Letter(c) for c in word.upper()]
 
 class TestGame(unittest.TestCase):
     def test_board(self):
@@ -62,9 +70,20 @@ class TestGame(unittest.TestCase):
         bag = Bag()
         player = Player(board, bag)
         place_word('YEET', board, 7, 7, WordDirection.RIGHT)
-        expanded = board.expand([Letter('E'), Letter('R')], 7, 11, WordDirection.RIGHT)
-        print(expanded)
-        self.assertEqual([[Letter('Y'), Letter('E'), Letter('E'), Letter('T'), Letter('E'), Letter('R')]], expanded)
+        expanded = board.expand(letters('ER'), 7, 11, WordDirection.RIGHT)
+        print([''.join([str(l) for l in w]) for w in expanded])
+        self.assertEqual([letters('YEETER')], expanded)
+        place_word('ER', board, 7, 11, WordDirection.RIGHT)
+        expanded = board.expand(letters('EAT'), 6, 11, WordDirection.RIGHT)
+        print([''.join([str(l) for l in w]) for w in expanded])
+        place_word('EAT', board, 6, 11, WordDirection.RIGHT)
+        print(board)
+        self.assertEqual([letters('EE'), letters('AR'), letters('EAT')], expanded)
+        expanded = board.expand(letters('TAS'), 4, 13, WordDirection.DOWN)
+        print([''.join([str(l) for l in w]) for w in expanded])
+        place_word('TAS', board, 4, 13, WordDirection.DOWN)
+        print(board)
+        self.assertEqual([letters('YEETERS'), letters('TATS')], expanded)
 
 if __name__ == '__main__':
     unittest.main()

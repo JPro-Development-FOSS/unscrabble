@@ -20,6 +20,11 @@ def place_word(word, board, i, j, word_direction):
 def letters(word):
     return [Letter(c) for c in word.upper()]
 
+def spots(word, i, j, word_direction):
+    return [Spot(i+k if word_direction == WordDirection.DOWN else i,
+                 j+k if word_direction == WordDirection.RIGHT else j,
+                 letter) for (k, letter) in enumerate(letters(word))]
+
 class TestGame(unittest.TestCase):
     def test_board(self):
         g = make_game()
@@ -65,25 +70,31 @@ class TestGame(unittest.TestCase):
         self.assertFalse(board.fits(9, 6, 7, WordDirection.DOWN))
 
     def test_expand(self):
-        spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
-        board = Board(spots)
+        board = Board([[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)])
         bag = Bag()
         player = Player(board, bag)
         place_word('YEET', board, 7, 7, WordDirection.RIGHT)
         expanded = board.expand(letters('ER'), 7, 11, WordDirection.RIGHT)
-        print([''.join([str(l) for l in w]) for w in expanded])
-        self.assertEqual([letters('YEETER')], expanded)
+        print([''.join([f'{s}({s.row},{s.col})' for s in w]) for w in expanded])
+        expected = spots('YEETER', 7, 7, WordDirection.RIGHT)
+        print('expected: ' + ''.join([f'{s}({s.row},{s.col})' for s in expected]))
+        self.assertEqual([expected], expanded)
         place_word('ER', board, 7, 11, WordDirection.RIGHT)
         expanded = board.expand(letters('EAT'), 6, 11, WordDirection.RIGHT)
-        print([''.join([str(l) for l in w]) for w in expanded])
+        print([''.join([str(s) for s in w]) for w in expanded])
         place_word('EAT', board, 6, 11, WordDirection.RIGHT)
         print(board)
-        self.assertEqual([letters('EE'), letters('AR'), letters('EAT')], expanded)
+        self.assertEqual(
+                [spots('EE', 6, 11, WordDirection.DOWN),
+                 spots('AR', 6, 12, WordDirection.DOWN),
+                 spots('EAT', 6, 11, WordDirection.RIGHT)], expanded)
         expanded = board.expand(letters('TAS'), 4, 13, WordDirection.DOWN)
-        print([''.join([str(l) for l in w]) for w in expanded])
+        print([''.join([str(s) for s in w]) for w in expanded])
         place_word('TAS', board, 4, 13, WordDirection.DOWN)
         print(board)
-        self.assertEqual([letters('YEETERS'), letters('TATS')], expanded)
+        self.assertEqual(
+                [spots('YEETERS', 7, 7, WordDirection.RIGHT),
+                 spots('TATS', 4, 13, WordDirection.DOWN)], expanded)
 
 if __name__ == '__main__':
     unittest.main()

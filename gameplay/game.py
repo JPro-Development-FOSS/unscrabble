@@ -31,13 +31,16 @@ class Letter:
 
 
 class Spot:
-    def __init__(self, row, col):
+    def __init__(self, row, col, letter = None):
         self.row = row
         self.col = col
-        self.letter = None
+        self.letter = letter
 
     def __str__(self):
         return str(self.letter) if self.letter else '-'
+
+    def __eq__(self, other):
+        return other != None and self.row == other.row and self.col == other.col and self.letter == other.letter
 
 class Board:
     def __init__(self, spots):
@@ -85,36 +88,32 @@ class Board:
         return remaining >= 0
 
     def expand(self, letters, i, j, direction):
-        # opportunities for words when placing letters in direction:
-        # - placed letter creates word with adjacent (other direction)
-        # - all letters are placed (current direction)
-        # Note: track new letters for easy scoring
         def gather_up(i, j):
             k = 1
             gathered = []
             while i - k >= 0 and self.spots[i-k][j].letter != None:
-                gathered.append(self.spots[i-k][j].letter)
+                gathered.append(self.spots[i-k][j])
                 k += 1
             return gathered
         def gather_down(i, j):
             k = 1
             gathered = []
             while i + k < ROWS and self.spots[i+k][j].letter != None:
-                gathered.append(self.spots[i+k][j].letter)
+                gathered.append(self.spots[i+k][j])
                 k += 1
             return gathered
         def gather_left(i, j):
             k = 1
             gathered = []
             while j - k >= 0 and self.spots[i][j-k].letter != None:
-                gathered.append(self.spots[i][j-k].letter)
+                gathered.append(self.spots[i][j-k])
                 k += 1
             return gathered
         def gather_right(i, j):
             k = 1
             gathered = []
             while j + k < COLS and self.spots[i][j+k].letter != None:
-                gathered.append(self.spots[i][j+k].letter)
+                gathered.append(self.spots[i][j+k])
                 k += 1
             return gathered
         words=[]
@@ -124,16 +123,16 @@ class Board:
             k=0
             for letter in letters:
                 while self.spots[i][j+k].letter != None:
-                    word.append(self.spots[i][j+k].letter)
+                    word.append(self.spots[i][j+k])
                     k+=1
                 # gather main word
-                word.append(letter)
+                word.append(Spot(i, j+k, letter))
                 # gather adjacent words
                 up = gather_up(i, j+k)
                 down = gather_down(i, j+k)
                 if up or down:
                     up.reverse()
-                    words.append(up + [letter] + down)
+                    words.append(up + [Spot(i, j+k, letter)] + down)
                 k+=1
             word += gather_right(i, j+k)
             words.append(word)
@@ -143,16 +142,16 @@ class Board:
             k=0
             for letter in letters:
                 while self.spots[i+k][j].letter != None:
-                    word.append(self.spots[i+k][j].letter)
+                    word.append(self.spots[i+k][j])
                     k+=1
                 # gather main word
-                word.append(letter)
+                word.append(Spot(i+k, j, letter))
                 # gather adjacent words
                 left = gather_left(i+k, j)
                 right = gather_right(i+k, j)
                 if left or right:
                     left.reverse()
-                    words.append(left + [letter] + right)
+                    words.append(left + [Spot(i+k, j, letter)] + right)
                 k+=1
             word += gather_down(i+k, j)
             words.append(word)
@@ -238,41 +237,41 @@ class Solver:
 
     def solve(self, board, letters):
         print('board empty: {}'.format(board.empty()))
-        if board.empty():
-            # only deal with letters
-            permutations = itertools.permutations(letters, len(letters))
-            print('{} letters'.format(len(letters)))
-            count = 0
-            max_score = -1
-            max_word = None
-            max_word_str = None
-            max_i = -1
-            max_j = -1
-            # TODO loop
-            i = 7
-            j = 7
-            # TODO discover reachable letters for the given position and word length (or center for empty)
-            for permutation in permutations:
-                count += 1
-                for l in range(2, len(permutation)):
-                    word = permutation[:l]
-                    word_str = ''.join(letter.letter for letter in word)
-                    if word_str in self.words:
-                        score = board.score(word, board, i, j, WordDirection.RIGHT)
-                        if score > max_score:
-                            max_score = score
-                            max_word = word
-                            max_word_str = word_str
-                            max_i = i
-                            max_j = j
-                        score = board.score(word, board, i, j, WordDirection.DOWN)
-                        if score > max_score:
-                            max_score = score
-                            max_word = word
-                            max_word_str = word_str
-                            max_i = i
-                            max_j = j
-            print('best word: {}, points: {}'.format(max_word_str, max_score))
+        # only deal with letters
+        permutations = itertools.permutations(letters, len(letters))
+        print('{} letters'.format(len(letters)))
+        count = 0
+        max_score = -1
+        max_word = None
+        max_word_str = None
+        max_i = -1
+        max_j = -1
+        # TODO loop
+        i = 7
+        j = 7
+        for permutation in permutations:
+            count += 1
+            for l in range(1, len(permutation)):
+                # TODO: check reaches and fits (TODO: make special reaches case for first)
+                word = permutation[:l]
+                word_str = ''.join(letter.letter for letter in word)
+                if word_str in self.words:
+                    # TODO: score expanded words
+                    score = board.score(word, board, i, j, WordDirection.RIGHT)
+                    if score > max_score:
+                        max_score = score
+                        max_word = word
+                        max_word_str = word_str
+                        max_i = i
+                        max_j = j
+                    score = board.score(word, board, i, j, WordDirection.DOWN)
+                    if score > max_score:
+                        max_score = score
+                        max_word = word
+                        max_word_str = word_str
+                        max_i = i
+                        max_j = j
+        print('best word: {}, points: {}'.format(max_word_str, max_score))
 
 class Player:
     def __init__(self, board, bag):

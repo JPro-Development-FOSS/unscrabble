@@ -49,27 +49,33 @@ class Board:
     def empty(self):
         return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
 
-    def score(self, word, board, i, j, direction):
+    def score(self, spotted_words, board, i, j, direction):
         # TODO: take multipliers and adjacent words into account
-        return functools.reduce(operator.add, [letter.points for letter in word])
+        return functools.reduce(operator.add, [spot.letter.points for word in spotted_words for spot in word])
    
     def reaches(self, num_letters, i, j, direction):
-        for k in range(num_letters):
+        if self.empty():
             if direction == WordDirection.RIGHT:
-                if j+k < COLS and self.spots[i][j+k].letter != None:
-                    return True
-                if j+k < COLS and i > 0 and self.spots[i-1][j+k].letter != None:
-                    return True
-                if j+k < COLS and i < ROWS-1 and self.spots[i+1][j+k].letter != None:
-                    return True
+                return i == 7 and j <=7 and j+num_letters > 7 and j+num_letters < COLS
             if direction == WordDirection.DOWN:
-                if i+k < ROWS and self.spots[i+k][j].letter != None:
-                    return True
-                if i+k < ROWS and j > 0 and self.spots[i+k][j-1].letter != None:
-                    return True
-                if i+k < ROWS and j < COLS-1 and self.spots[i+k][j+1].letter != None:
-                    return True
-        return False
+                return j == 7 and i <=7 and i+num_letters > 7 and i+num_letters < ROWS
+        else:
+            for k in range(num_letters):
+                if direction == WordDirection.RIGHT:
+                    if j+k < COLS and self.spots[i][j+k].letter != None:
+                        return True
+                    if j+k < COLS and i > 0 and self.spots[i-1][j+k].letter != None:
+                        return True
+                    if j+k < COLS and i < ROWS-1 and self.spots[i+1][j+k].letter != None:
+                        return True
+                if direction == WordDirection.DOWN:
+                    if i+k < ROWS and self.spots[i+k][j].letter != None:
+                        return True
+                    if i+k < ROWS and j > 0 and self.spots[i+k][j-1].letter != None:
+                        return True
+                    if i+k < ROWS and j < COLS-1 and self.spots[i+k][j+1].letter != None:
+                        return True
+            return False
 
     def fits(self, num_letters, i, j, direction):
         if self.spots[i][j].letter != None:
@@ -246,55 +252,44 @@ class Solver:
         max_word_str = None
         max_i = -1
         max_j = -1
-        # TODO loop
-        i = 7
-        j = 7
-        for permutation in permutations:
-            count += 1
-            for l in range(1, len(permutation)):
-                # TODO: check reaches and fits (TODO: make special reaches case for first)
-                word = permutation[:l]
-                word_str = ''.join(letter.letter for letter in word)
-                if word_str in self.words:
-                    # TODO: score expanded words
-                    score = board.score(word, board, i, j, WordDirection.RIGHT)
-                    if score > max_score:
-                        max_score = score
-                        max_word = word
-                        max_word_str = word_str
-                        max_i = i
-                        max_j = j
-                    score = board.score(word, board, i, j, WordDirection.DOWN)
-                    if score > max_score:
-                        max_score = score
-                        max_word = word
-                        max_word_str = word_str
-                        max_i = i
-                        max_j = j
+        for i in range(ROWS):
+            for j in range(ROWS):
+                for permutation in permutations:
+                    count += 1
+                    for l in range(1, len(permutation)):
+                        word = permutation[:l]
+                        word_str = ''.join(letter.letter for letter in word)
+                        if word_str in self.words:
+                            if board.reaches(l, i, j, WordDirection.RIGHT) and board.fits(l, i, j, WordDirection.RIGHT):
+                                score = board.score(board.expand(word, i, j, WordDirection.RIGHT), board, i, j, WordDirection.RIGHT)
+                                if score > max_score:
+                                    max_score = score
+                                    max_word = word
+                                    max_word_str = word_str
+                                    max_i = i
+                                    max_j = j
+                            if board.reaches(l, i, j, WordDirection.DOWN) and board.fits(l, i, j, WordDirection.DOWN):
+                                score = board.score(board.expand(word, i, j, WordDirection.DOWN), board, i, j, WordDirection.DOWN)
+                                if score > max_score:
+                                    max_score = score
+                                    max_word = word
+                                    max_word_str = word_str
+                                    max_i = i
+                                    max_j = j
         print('best word: {}, points: {}'.format(max_word_str, max_score))
+        # TODO: return max_word, max_i, max_j, direction and max_score?
 
 class Player:
-    def __init__(self, board, bag):
+    def __init__(self, board, bag, solver=None):
         self.board = board
         self.bag = bag
         self.letters = [bag.draw() for _ in range(7)]
+        self.solver = solver
 
-    def do_the_thing(self):
-        # permutations of letters
-        permutations = itertools.permutations(self.letters, len(self.letters))
-        # each viable board space as starting point
-        for i in range(COLS):
-            for j in range(ROWS):
-                for permutation in permutations:
-                    for l in range(len(permutation)):
-                        # try words to the right
-                        # try words down
-                        # check dictionary
-                        # score, record max
-                        word = permutation[:l]
-
-        # if viable word exists, play it. else give up (for now)
-
+    def take_turn(self):
+        # TODO: need to know what spots are involved in solution
+        # self.solver.solve(self.board, self.letters)
+        pass
 
     def __str__(self):
         return ' '.join([str(letter) for letter in self.letters])
@@ -304,7 +299,9 @@ def make_game():
     spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
     board = Board(spots)
     bag = Bag()
-    players = [Player(board, bag) for _ in range(2)]
+    word_loader = WordLoader('dictionary.txt')
+    solver = Solver(word_loader.words)
+    players = [Player(board, bag, solver) for _ in range(2)]
     return Game(board, bag, players)
 
 if __name__ == '__main__':

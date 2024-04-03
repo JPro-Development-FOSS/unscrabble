@@ -52,9 +52,11 @@ class TestGame(unittest.TestCase):
         board = Board(spots)
         bag = Bag()
         player = Player(board, bag)
-        self.assertFalse(board.reaches(4, 6, 7, WordDirection.DOWN))
-        place_word('YEET', board, 7, 7, WordDirection.RIGHT)
+        # empty board -- play through middle star
         self.assertTrue(board.reaches(4, 6, 7, WordDirection.DOWN))
+        self.assertFalse(board.reaches(4, 6, 8, WordDirection.DOWN))
+        place_word('YEET', board, 7, 8, WordDirection.RIGHT)
+        self.assertTrue(board.reaches(4, 6, 8, WordDirection.DOWN))
 
     def test_fits(self):
         spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]

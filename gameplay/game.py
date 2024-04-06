@@ -3,6 +3,8 @@ import functools
 import operator
 import itertools
 from enum import Enum
+from dataclasses import dataclass
+from typing import Sequence
 
 COLS = 15
 ROWS = COLS
@@ -236,6 +238,14 @@ class WordLoader:
             for line in f:
                 self.words.add(line.strip())
 
+@dataclass
+class Solution:
+    max_score: int = 0
+    max_word: Sequence[Letter] = None
+    max_word_str: str = ''
+    max_i: int = 0
+    max_j: int = 0
+    max_direction: WordDirection = WordDirection.RIGHT
 
 class Solver:
     def __init__(self, words):
@@ -247,11 +257,7 @@ class Solver:
         permutations = itertools.permutations(letters, len(letters))
         print('{} letters'.format(len(letters)))
         count = 0
-        max_score = -1
-        max_word = None
-        max_word_str = None
-        max_i = -1
-        max_j = -1
+        solution = Solution()
         for i in range(ROWS):
             for j in range(ROWS):
                 for permutation in permutations:
@@ -259,25 +265,30 @@ class Solver:
                     for l in range(1, len(permutation)):
                         word = permutation[:l]
                         word_str = ''.join(letter.letter for letter in word)
+                        # TODO: each expanded word needs to be checked
                         if word_str in self.words:
                             if board.reaches(l, i, j, WordDirection.RIGHT) and board.fits(l, i, j, WordDirection.RIGHT):
                                 score = board.score(board.expand(word, i, j, WordDirection.RIGHT), board, i, j, WordDirection.RIGHT)
-                                if score > max_score:
-                                    max_score = score
-                                    max_word = word
-                                    max_word_str = word_str
-                                    max_i = i
-                                    max_j = j
+                                if score > solution.max_score:
+                                    solution = Solution(
+                                            max_score = score,
+                                            max_word = word,
+                                            max_word_str = word_str,
+                                            max_i = i,
+                                            max_j = j,
+                                            max_direction = WordDirection.RIGHT)
                             if board.reaches(l, i, j, WordDirection.DOWN) and board.fits(l, i, j, WordDirection.DOWN):
                                 score = board.score(board.expand(word, i, j, WordDirection.DOWN), board, i, j, WordDirection.DOWN)
-                                if score > max_score:
-                                    max_score = score
-                                    max_word = word
-                                    max_word_str = word_str
-                                    max_i = i
-                                    max_j = j
-        print('best word: {}, points: {}'.format(max_word_str, max_score))
-        # TODO: return max_word, max_i, max_j, direction and max_score?
+                                if score > solution.max_score:
+                                    solution = Solution(
+                                            max_score = score,
+                                            max_word = word,
+                                            max_word_str = word_str,
+                                            max_i = i,
+                                            max_j = j,
+                                            max_direction = WordDirection.RIGHT)
+        print('best word: {}, points: {}'.format(solution.max_word_str, solution.max_score))
+        return solution
 
 class Player:
     def __init__(self, board, bag, solver=None):

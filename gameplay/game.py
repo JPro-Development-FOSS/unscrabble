@@ -300,9 +300,15 @@ class Player:
         self.solver = solver
 
     def take_turn(self):
-        # TODO: need to know what spots are involved in solution
-        # self.solver.solve(self.board, self.letters)
-        pass
+        solution = self.solver.solve(self.board, self.letters)
+        if solution == None:
+            return False
+        for spot in solution.word:
+            self.letters.remove(spot.letter)
+            if len(self.bag) > 0:
+                self.letters.append(self.bag.draw())
+            self.board.spots[spot.row][spot.col].letter = spot.letter
+        return True
 
     def __str__(self):
         return ' '.join([str(letter) for letter in self.letters])
@@ -323,4 +329,10 @@ if __name__ == '__main__':
     bag = Bag()
     players = [Player(board, bag) for _ in range(2)]
     game = Game(board, bag, players)
-    print(game)
+    for turn in itertools.count(start=1):
+        keep_going = players[turn%len(players)].take_turn()
+        print(f'after turn {turn}')
+        print(board)
+        if not keep_going:
+            break
+    print('Thanks for playing!')

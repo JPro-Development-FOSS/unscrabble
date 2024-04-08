@@ -98,5 +98,17 @@ class TestGame(unittest.TestCase):
                 [spots('YEETERS', 7, 7, WordDirection.RIGHT),
                  spots('TATS', 4, 13, WordDirection.DOWN)], expanded)
 
+
+class TestPlayer(unittest.TestCase):
+    def test_take_turn(self):
+        g = make_game()
+        g.players[0].take_turn()
+        print('after 1 turn:')
+        print(g.board)
+        g.players[1].take_turn()
+        print('after 2 turns:')
+        print(g.board)
+
+
 if __name__ == '__main__':
     unittest.main()

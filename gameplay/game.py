@@ -2,6 +2,7 @@ import random
 import functools
 import operator
 import itertools
+import pprint
 from enum import Enum
 from dataclasses import dataclass
 from typing import Sequence
@@ -51,7 +52,7 @@ class Board:
     def empty(self):
         return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
 
-    def score(self, spotted_words, board, i, j, direction):
+    def score(self, spotted_words, i, j, direction):
         # TODO: take multipliers and adjacent words into account
         return functools.reduce(operator.add, [spot.letter.points for word in spotted_words for spot in word])
    
@@ -240,12 +241,12 @@ class WordLoader:
 
 @dataclass
 class Solution:
-    max_score: int = 0
-    max_word: Sequence[Letter] = None
-    max_word_str: str = ''
-    max_i: int = 0
-    max_j: int = 0
-    max_direction: WordDirection = WordDirection.RIGHT
+    score: int = 0
+    word: Sequence[Letter] = None
+    word_str: str = ''
+    i: int = 0
+    j: int = 0
+    direction: WordDirection = WordDirection.RIGHT
 
 class Solver:
     def __init__(self, words):
@@ -254,40 +255,41 @@ class Solver:
     def solve(self, board, letters):
         print('board empty: {}'.format(board.empty()))
         # only deal with letters
-        permutations = itertools.permutations(letters, len(letters))
         print('{} letters'.format(len(letters)))
         count = 0
         solution = Solution()
         for i in range(ROWS):
-            for j in range(ROWS):
+            for j in range(COLS):
+                permutations = itertools.permutations(letters, len(letters))
                 for permutation in permutations:
                     count += 1
                     for l in range(1, len(permutation)):
                         word = permutation[:l]
                         word_str = ''.join(letter.letter for letter in word)
-                        # TODO: each expanded word needs to be checked
-                        if word_str in self.words:
-                            if board.reaches(l, i, j, WordDirection.RIGHT) and board.fits(l, i, j, WordDirection.RIGHT):
-                                score = board.score(board.expand(word, i, j, WordDirection.RIGHT), board, i, j, WordDirection.RIGHT)
-                                if score > solution.max_score:
-                                    solution = Solution(
-                                            max_score = score,
-                                            max_word = word,
-                                            max_word_str = word_str,
-                                            max_i = i,
-                                            max_j = j,
-                                            max_direction = WordDirection.RIGHT)
-                            if board.reaches(l, i, j, WordDirection.DOWN) and board.fits(l, i, j, WordDirection.DOWN):
-                                score = board.score(board.expand(word, i, j, WordDirection.DOWN), board, i, j, WordDirection.DOWN)
-                                if score > solution.max_score:
-                                    solution = Solution(
-                                            max_score = score,
-                                            max_word = word,
-                                            max_word_str = word_str,
-                                            max_i = i,
-                                            max_j = j,
-                                            max_direction = WordDirection.RIGHT)
-        print('best word: {}, points: {}'.format(solution.max_word_str, solution.max_score))
+                        expanded = []
+                        if (board.reaches(l, i, j, WordDirection.RIGHT) and
+                            board.fits(l, i, j, WordDirection.RIGHT)):
+                            expanded.append((board.expand(
+                                word, i, j, WordDirection.RIGHT), WordDirection.RIGHT))
+                        if (board.reaches(l, i, j, WordDirection.DOWN) and
+                            board.fits(l, i, j, WordDirection.DOWN)):
+                            expanded.append((board.expand(
+                                word, i, j, WordDirection.DOWN), WordDirection.DOWN))
+                        for spotted_words, direction in expanded:
+                            all_are_words = True
+                            word_str = None
+                            for spotted_word in spotted_words:
+                                expanded_word = ''.join([spot.letter.letter for spot in spotted_word])
+                                word_str = expanded_word if word_str == None else word_str
+                                all_are_words = all_are_words and expanded_word in self.words
+                            score = board.score(spotted_words, i, j, direction)
+                            if all_are_words and score > solution.score:
+                                # TODO: make "played" word first class
+                                solution = Solution(
+                                        score = score, word = spotted_words[0],
+                                        word_str = word_str, i = i, j = j,
+                                        direction = direction)
+        pprint.pprint(solution)
         return solution
 
 class Player:

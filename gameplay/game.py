@@ -253,9 +253,7 @@ class Solver:
         self.words = words
 
     def solve(self, board, letters):
-        print('board empty: {}'.format(board.empty()))
         # only deal with letters
-        print('{} letters'.format(len(letters)))
         count = 0
         solution = Solution()
         for i in range(ROWS):
@@ -326,7 +324,7 @@ def make_game():
 if __name__ == '__main__':
     game = make_game()
     for turn in itertools.count(start=1):
-        keep_going = players[turn%len(players)].take_turn()
+        keep_going = game.players[turn%len(game.players)].take_turn()
         print(f'after turn {turn}')
         print(board)
         if not keep_going:

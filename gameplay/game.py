@@ -324,11 +324,7 @@ def make_game():
     return Game(board, bag, players)
 
 if __name__ == '__main__':
-    spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
-    board = Board(spots)
-    bag = Bag()
-    players = [Player(board, bag) for _ in range(2)]
-    game = Game(board, bag, players)
+    game = make_game()
     for turn in itertools.count(start=1):
         keep_going = players[turn%len(players)].take_turn()
         print(f'after turn {turn}')

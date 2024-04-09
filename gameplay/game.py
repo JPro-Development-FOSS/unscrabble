@@ -48,16 +48,18 @@ class Spot:
 class Board:
     def __init__(self, spots):
         self.spots = spots
+        self.empty = True
 
-    def empty(self):
-        return functools.reduce(operator.and_, [spot.letter == None for row in self.spots for spot in row])
+    def set_letter(self, i, j, letter):
+        self.spots[i][j].letter = letter
+        self.empty = False
 
     def score(self, spotted_words, i, j, direction):
         # TODO: take multipliers and adjacent words into account
         return functools.reduce(operator.add, [spot.letter.points for word in spotted_words for spot in word])
    
     def reaches(self, num_letters, i, j, direction):
-        if self.empty():
+        if self.empty:
             if direction == WordDirection.RIGHT:
                 return i == 7 and j <=7 and j+num_letters > 7 and j+num_letters < COLS
             if direction == WordDirection.DOWN:
@@ -282,7 +284,7 @@ class Solver:
                                 all_are_words = all_are_words and expanded_word in self.words
                             score = board.score(spotted_words, i, j, direction)
                             if all_are_words and score > solution.score:
-                                # TODO: make "played" word first class
+                                # TODO: make "played" letters first class
                                 solution = Solution(
                                         score = score, word = spotted_words[0],
                                         word_str = word_str, i = i, j = j,
@@ -303,20 +305,20 @@ class Player:
             return False
         for spot in solution.word:
             self.letters.remove(spot.letter)
-            if len(self.bag) > 0:
+            if len(self.bag.bag) > 0:
                 self.letters.append(self.bag.draw())
-            self.board.spots[spot.row][spot.col].letter = spot.letter
+            self.board.set_letter(spot.row, spot.col, spot.letter)
         return True
 
     def __str__(self):
         return ' '.join([str(letter) for letter in self.letters])
 
 
-def make_game():
+def make_game(dictionary='dictionary.txt'):
     spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
     board = Board(spots)
     bag = Bag()
-    word_loader = WordLoader('dictionary.txt')
+    word_loader = WordLoader(dictionary)
     solver = Solver(word_loader.words)
     players = [Player(board, bag, solver) for _ in range(2)]
     return Game(board, bag, players)
@@ -326,7 +328,7 @@ if __name__ == '__main__':
     for turn in itertools.count(start=1):
         keep_going = game.players[turn%len(game.players)].take_turn()
         print(f'after turn {turn}')
-        print(board)
+        print(game.board)
         if not keep_going:
             break
     print('Thanks for playing!')

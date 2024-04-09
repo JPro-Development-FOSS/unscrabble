@@ -38,7 +38,7 @@ class TestGame(unittest.TestCase):
         print('\n')
         print('letters: {}'.format(str(player)))
         start = timeit.default_timer()
-        word_loader = WordLoader('dictionary.txt')
+        word_loader = WordLoader('dictionary_little.txt')
         t = timeit.default_timer() - start
         print('{} words loaded in {}s'.format(len(word_loader.words), t))
         solver = Solver(word_loader.words)
@@ -101,7 +101,7 @@ class TestGame(unittest.TestCase):
 
 class TestPlayer(unittest.TestCase):
     def test_take_turn(self):
-        g = make_game()
+        g = make_game(dictionary='dictionary_little.txt')
         g.players[0].take_turn()
         print('after 1 turn:')
         print(g.board)

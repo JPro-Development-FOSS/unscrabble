@@ -29,6 +29,9 @@ class Letter:
     def __str__(self):
         return '-' if self.letter is None else self.letter
 
+    def __repr__(self):
+        return '-' if self.letter is None else self.letter
+
     def __eq__(self, other):
         return other != None and self.letter == other.letter
 
@@ -49,10 +52,17 @@ class Board:
     def __init__(self, spots):
         self.spots = spots
         self.empty = True
+        # TODO: reaches opt
+        # self.reaches_valid = False
+        # self.rows = len(spots)
+        # self.cols = len(spots[0])
+        # self.reaches_requred_length = [[-1 for j in range(0, self.cols)] for i in range(0, self.rows)]
 
     def set_letter(self, i, j, letter):
         self.spots[i][j].letter = letter
         self.empty = False
+        # TODO: reaches opt
+        # self.reaches_valid = False
 
     def score(self, spotted_words, i, j, direction):
         # TODO: take multipliers and adjacent words into account
@@ -65,6 +75,12 @@ class Board:
             if direction == WordDirection.DOWN:
                 return j == 7 and i <=7 and i+num_letters > 7 and i+num_letters < ROWS
         else:
+            # TODO: reaches opt
+            # if not self.reaches_valid:
+            #     for i in self.rows:
+            #         for
+            #     pass
+            # return num_letters >= self.reaches_required_length[i][j]
             for k in range(num_letters):
                 if direction == WordDirection.RIGHT:
                     if j+k < COLS and self.spots[i][j+k].letter != None:
@@ -245,6 +261,7 @@ class WordLoader:
 class Solution:
     score: int = 0
     word: Sequence[Letter] = None
+    played_letters: Sequence[Letter] = None
     word_str: str = ''
     i: int = 0
     j: int = 0
@@ -265,7 +282,6 @@ class Solver:
                     count += 1
                     for l in range(1, len(permutation)):
                         word = permutation[:l]
-                        word_str = ''.join(letter.letter for letter in word)
                         expanded = []
                         if (board.reaches(l, i, j, WordDirection.RIGHT) and
                             board.fits(l, i, j, WordDirection.RIGHT)):
@@ -284,11 +300,11 @@ class Solver:
                                 all_are_words = all_are_words and expanded_word in self.words
                             score = board.score(spotted_words, i, j, direction)
                             if all_are_words and score > solution.score:
-                                # TODO: make "played" letters first class
+                                word_str = word_str
                                 solution = Solution(
-                                        score = score, word = spotted_words[0],
-                                        word_str = word_str, i = i, j = j,
-                                        direction = direction)
+                                        score = score, word = spotted_words[-1],
+                                        played_letters = word, word_str = word_str, i = i,
+                                        j = j, direction = direction)
         pprint.pprint(solution)
         return solution
 
@@ -303,10 +319,11 @@ class Player:
         solution = self.solver.solve(self.board, self.letters)
         if solution == None:
             return False
-        for spot in solution.word:
-            self.letters.remove(spot.letter)
+        for letter in solution.played_letters:
+            self.letters.remove(letter)
             if len(self.bag.bag) > 0:
                 self.letters.append(self.bag.draw())
+        for spot in solution.word:
             self.board.set_letter(spot.row, spot.col, spot.letter)
         return True
 

@@ -8,12 +8,12 @@ def place_word(word, board, i, j, word_direction):
         if word_direction == WordDirection.DOWN:
             while board.spots[i][j].letter != None:
                 i += 1
-            board.spots[i][j].letter = Letter(letter)
+            board.set_letter(i, j, Letter(letter))
             i += 1
         else:
             while board.spots[i][j].letter != None:
                 j += 1
-            board.spots[i][j].letter = Letter(letter)
+            board.set_letter(i, j, Letter(letter))
             j += 1
 
 

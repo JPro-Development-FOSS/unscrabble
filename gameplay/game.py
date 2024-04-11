@@ -274,7 +274,7 @@ class Solver:
     def solve(self, board, letters):
         # only deal with letters
         count = 0
-        solution = Solution()
+        solution = None
         for i in range(ROWS):
             for j in range(COLS):
                 permutations = itertools.permutations(letters, len(letters))
@@ -299,7 +299,7 @@ class Solver:
                                 word_str = expanded_word if word_str == None else word_str
                                 all_are_words = all_are_words and expanded_word in self.words
                             score = board.score(spotted_words, i, j, direction)
-                            if all_are_words and score > solution.score:
+                            if all_are_words and (solution == None or score > solution.score):
                                 word_str = word_str
                                 solution = Solution(
                                         score = score, word = spotted_words[-1],

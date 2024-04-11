@@ -145,6 +145,7 @@ class Board:
                 k += 1
             return gathered
         words=[]
+        # TODO: make ExpandedSpot data class that tracks letter freshness for scoring purposes
         if direction == WordDirection.RIGHT:
             word = gather_left(i, j)
             word.reverse()
@@ -348,7 +349,7 @@ def make_game(board_letters=None, bag_letters=None, turn=1, player_letters=[None
         bag.bag = [Letter(letter) for letter in bag_letters.split(' ')]
     word_loader = WordLoader(dictionary)
     solver = Solver(word_loader.words)
-    if player_letters:
+    if player_letters != [None, None]:
         player_letters = [[Letter(letter) for letter in player_letter.split(' ')] for player_letter in player_letters]
     players = [Player(board, bag, letters=player_letters[i], solver=solver) for i in range(2)]
     game = Game(board, bag, players)

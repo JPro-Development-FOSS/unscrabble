@@ -3,6 +3,7 @@ import functools
 import operator
 import itertools
 import pprint
+import timeit
 from enum import Enum
 from dataclasses import dataclass
 from typing import Sequence
@@ -229,6 +230,9 @@ class Bag:
     def draw(self):
         return self.bag.pop()
 
+    def __str__(self):
+        return ' '.join([str(letter) for letter in self.bag])
+
 class Game:
     def __init__(self, board, bag, players):
         self.board = board
@@ -238,13 +242,18 @@ class Game:
         self.turn = 0
 
     def next_player(self):
-        self.turn = (self.turn + 1) % len(self.players)
-        return self.players[self.turn]
+        self.turn += 1
+        return self.players[self.turn % len(self.players)]
 
     def __str__(self):
-        return '{}\n{}'.format(
+        return '{}\nbag: {}\nturn: {}\n{}'.format(
                 self.board,
-                '\n'.join(['{} p{}: {}'.format('*' if i == self.turn else ' ', i, p) for (i, p) in enumerate(self.players)]))
+                self.bag,
+                self.turn+1,
+                '\n'.join(
+                    ['{} p{}: {}'.format(
+                        '*' if i == (self.turn % len(self.players))
+                        else ' ', i, p) for (i, p) in enumerate(self.players)]))
 
 class WordDirection(Enum):
     RIGHT = 0
@@ -262,7 +271,6 @@ class Solution:
     score: int = 0
     word: Sequence[Letter] = None
     played_letters: Sequence[Letter] = None
-    word_str: str = ''
     i: int = 0
     j: int = 0
     direction: WordDirection = WordDirection.RIGHT
@@ -293,26 +301,23 @@ class Solver:
                                 word, i, j, WordDirection.DOWN), WordDirection.DOWN))
                         for spotted_words, direction in expanded:
                             all_are_words = True
-                            word_str = None
                             for spotted_word in spotted_words:
                                 expanded_word = ''.join([spot.letter.letter for spot in spotted_word])
-                                word_str = expanded_word if word_str == None else word_str
                                 all_are_words = all_are_words and expanded_word in self.words
                             score = board.score(spotted_words, i, j, direction)
                             if all_are_words and (solution == None or score > solution.score):
-                                word_str = word_str
                                 solution = Solution(
                                         score = score, word = spotted_words[-1],
-                                        played_letters = word, word_str = word_str, i = i,
-                                        j = j, direction = direction)
+                                        played_letters = word, i = i, j = j,
+                                        direction = direction)
         pprint.pprint(solution)
         return solution
 
 class Player:
-    def __init__(self, board, bag, solver=None):
+    def __init__(self, board, bag, letters=None, solver=None):
         self.board = board
         self.bag = bag
-        self.letters = [bag.draw() for _ in range(7)]
+        self.letters = letters if letters else [bag.draw() for _ in range(7)]
         self.solver = solver
 
     def take_turn(self):
@@ -331,21 +336,33 @@ class Player:
         return ' '.join([str(letter) for letter in self.letters])
 
 
-def make_game(dictionary='dictionary.txt'):
+def make_game(board_letters=None, bag_letters=None, turn=1, player_letters=[None, None], dictionary='dictionary.txt'):
     spots = [[Spot(i,j) for j in range(0,COLS)] for i in range(0,ROWS)]
     board = Board(spots)
+    if board_letters:
+        for i, row in enumerate(board_letters.splitlines()):
+            for j, letter in enumerate(row.split(' ')):
+                board.set_letter(i, j, letter)
     bag = Bag()
+    if bag_letters:
+        bag.bag = [Letter(letter) for letter in bag_letters.split(' ')]
     word_loader = WordLoader(dictionary)
     solver = Solver(word_loader.words)
-    players = [Player(board, bag, solver) for _ in range(2)]
-    return Game(board, bag, players)
+    if player_letters:
+        player_letters = [[Letter(letter) for letter in player_letter.split(' ')] for player_letter in player_letters]
+    players = [Player(board, bag, letters=player_letters[i], solver=solver) for i in range(2)]
+    game = Game(board, bag, players)
+    game.turn = turn-1
+    return game
 
 if __name__ == '__main__':
     game = make_game()
-    for turn in itertools.count(start=1):
-        keep_going = game.players[turn%len(game.players)].take_turn()
-        print(f'after turn {turn}')
-        print(game.board)
-        if not keep_going:
-            break
+    keep_going = True
+    game_start = timeit.default_timer()
+    while keep_going:
+        turn_start = timeit.default_timer()
+        keep_going = game.next_player().take_turn()
+        print(game)
+        now = timeit.default_timer()
+        print('turn time {}s, game time {}s\n\n'.format(now-turn_start, now-game_start), flush=True)
     print('Thanks for playing!')

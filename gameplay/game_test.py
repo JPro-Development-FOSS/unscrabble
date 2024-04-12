@@ -1,7 +1,7 @@
 import unittest
 import timeit
 
-from game import Player, WordLoader, Solver, WordDirection, Board, Game, Bag, Spot, ROWS, COLS, make_game, Letter
+from game import Player, WordLoader, Solver, WordDirection, Board, Game, Bag, ExpandedSpot, Spot, ROWS, COLS, make_game, Letter
 
 def place_word(word, board, i, j, word_direction):
     for letter in word:
@@ -21,9 +21,9 @@ def letters(word):
     return [Letter(c) for c in word.upper()]
 
 def spots(word, i, j, word_direction):
-    return [Spot(i+k if word_direction == WordDirection.DOWN else i,
+    return [ExpandedSpot(Spot(i+k if word_direction == WordDirection.DOWN else i,
                  j+k if word_direction == WordDirection.RIGHT else j,
-                 letter) for (k, letter) in enumerate(letters(word))]
+                 letter)) for (k, letter) in enumerate(letters(word))]
 
 class TestGame(unittest.TestCase):
     def test_board(self):
@@ -77,9 +77,9 @@ class TestGame(unittest.TestCase):
         player = Player(board, bag)
         place_word('YEET', board, 7, 7, WordDirection.RIGHT)
         expanded = board.expand(letters('ER'), 7, 11, WordDirection.RIGHT)
-        print([''.join([f'{s}({s.row},{s.col})' for s in w]) for w in expanded])
+        print([''.join([f'{s.spot}({s.spot.row},{s.spot.col})' for s in w]) for w in expanded])
         expected = spots('YEETER', 7, 7, WordDirection.RIGHT)
-        print('expected: ' + ''.join([f'{s}({s.row},{s.col})' for s in expected]))
+        print('expected: ' + ''.join([f'{s.spot}({s.spot.row},{s.spot.col})' for s in expected]))
         self.assertEqual([expected], expanded)
         place_word('ER', board, 7, 11, WordDirection.RIGHT)
         expanded = board.expand(letters('EAT'), 6, 11, WordDirection.RIGHT)

@@ -21,6 +21,39 @@ LETTER_TO_POINT = {
         'X': 8,
         'Q': 10, 'Z': 10,
         }
+SPOT_TO_LETTER_MULTIPLE = [
+        [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+        [1, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1],
+        [2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1],
+        [1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 1],
+        [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+        [1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 1],
+        [1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2],
+        [1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 1, 1],
+        [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1]]
+SPOT_TO_WORD_MULTIPLE = [
+        [3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3],
+        [1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+        [1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
+        [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+        [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [3, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+        [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+        [1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
+        [1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1],
+        [3, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 3]]
+
 
 class Letter:
     def __init__(self, letter):
@@ -49,6 +82,15 @@ class Spot:
     def __eq__(self, other):
         return other != None and self.row == other.row and self.col == other.col and self.letter == other.letter
 
+@dataclass
+class ExpandedSpot:
+    spot: Spot
+    fresh: bool=False
+    def __str__(self):
+        return str(self.spot)
+    def __eq__(self, other):
+        return other != None and self.spot == other.spot
+
 class Board:
     def __init__(self, spots):
         self.spots = spots
@@ -65,9 +107,19 @@ class Board:
         # TODO: reaches opt
         # self.reaches_valid = False
 
-    def score(self, spotted_words, i, j, direction):
-        # TODO: take multipliers and adjacent words into account
-        return functools.reduce(operator.add, [spot.letter.points for word in spotted_words for spot in word])
+    def score(self, expanded_spotted_words, i, j, direction):
+        expanded_total = 0
+        for word in expanded_spotted_words:
+            word_multiplier = 1
+            word_total = 0
+            for spot in word:
+                if spot.fresh:
+                    word_total += spot.spot.letter.points * SPOT_TO_LETTER_MULTIPLE[spot.spot.row][spot.spot.col]
+                    word_multiplier *= SPOT_TO_WORD_MULTIPLE[spot.spot.row][spot.spot.col]
+                else:
+                    word_total += spot.spot.letter.points
+            expanded_total += word_total * word_multiplier 
+        return expanded_total
    
     def reaches(self, num_letters, i, j, direction):
         if self.empty:
@@ -120,48 +172,47 @@ class Board:
             k = 1
             gathered = []
             while i - k >= 0 and self.spots[i-k][j].letter != None:
-                gathered.append(self.spots[i-k][j])
+                gathered.append(ExpandedSpot(self.spots[i-k][j]))
                 k += 1
             return gathered
         def gather_down(i, j):
             k = 1
             gathered = []
             while i + k < ROWS and self.spots[i+k][j].letter != None:
-                gathered.append(self.spots[i+k][j])
+                gathered.append(ExpandedSpot(self.spots[i+k][j]))
                 k += 1
             return gathered
         def gather_left(i, j):
             k = 1
             gathered = []
             while j - k >= 0 and self.spots[i][j-k].letter != None:
-                gathered.append(self.spots[i][j-k])
+                gathered.append(ExpandedSpot(self.spots[i][j-k]))
                 k += 1
             return gathered
         def gather_right(i, j):
             k = 1
             gathered = []
             while j + k < COLS and self.spots[i][j+k].letter != None:
-                gathered.append(self.spots[i][j+k])
+                gathered.append(ExpandedSpot(self.spots[i][j+k]))
                 k += 1
             return gathered
         words=[]
-        # TODO: make ExpandedSpot data class that tracks letter freshness for scoring purposes
         if direction == WordDirection.RIGHT:
             word = gather_left(i, j)
             word.reverse()
             k=0
             for letter in letters:
                 while self.spots[i][j+k].letter != None:
-                    word.append(self.spots[i][j+k])
+                    word.append(ExpandedSpot(self.spots[i][j+k]))
                     k+=1
                 # gather main word
-                word.append(Spot(i, j+k, letter))
+                word.append(ExpandedSpot(Spot(i, j+k, letter), fresh=True))
                 # gather adjacent words
                 up = gather_up(i, j+k)
                 down = gather_down(i, j+k)
                 if up or down:
                     up.reverse()
-                    words.append(up + [Spot(i, j+k, letter)] + down)
+                    words.append(up + [ExpandedSpot(Spot(i, j+k, letter), fresh=True)] + down)
                 k+=1
             word += gather_right(i, j+k)
             words.append(word)
@@ -171,16 +222,16 @@ class Board:
             k=0
             for letter in letters:
                 while self.spots[i+k][j].letter != None:
-                    word.append(self.spots[i+k][j])
+                    word.append(ExpandedSpot(self.spots[i+k][j]))
                     k+=1
                 # gather main word
-                word.append(Spot(i+k, j, letter))
+                word.append(ExpandedSpot(Spot(i+k, j, letter), fresh=True))
                 # gather adjacent words
                 left = gather_left(i+k, j)
                 right = gather_right(i+k, j)
                 if left or right:
                     left.reverse()
-                    words.append(left + [Spot(i+k, j, letter)] + right)
+                    words.append(left + [ExpandedSpot(Spot(i+k, j, letter), fresh=True)] + right)
                 k+=1
             word += gather_down(i+k, j)
             words.append(word)
@@ -300,17 +351,20 @@ class Solver:
                             board.fits(l, i, j, WordDirection.DOWN)):
                             expanded.append((board.expand(
                                 word, i, j, WordDirection.DOWN), WordDirection.DOWN))
-                        for spotted_words, direction in expanded:
+                        for expanded_spotted_words, direction in expanded:
                             all_are_words = True
-                            for spotted_word in spotted_words:
-                                expanded_word = ''.join([spot.letter.letter for spot in spotted_word])
+                            for expanded_spotted_word in expanded_spotted_words:
+                                expanded_word = ''.join([spot.spot.letter.letter for spot in expanded_spotted_word])
+                                # TODO: support blank letters
                                 all_are_words = all_are_words and expanded_word in self.words
-                            score = board.score(spotted_words, i, j, direction)
-                            if all_are_words and (solution == None or score > solution.score):
-                                solution = Solution(
-                                        score = score, word = spotted_words[-1],
-                                        played_letters = word, i = i, j = j,
-                                        direction = direction)
+                            if all_are_words:
+                                score = board.score(expanded_spotted_words, i, j, direction)
+                                if solution == None or score > solution.score:
+                                    solution = Solution(
+                                            score = score,
+                                            word = [spot.spot for spot in expanded_spotted_words[-1]],
+                                            played_letters = word, i = i, j = j,
+                                            direction = direction)
         pprint.pprint(solution)
         return solution
 
@@ -320,6 +374,7 @@ class Player:
         self.bag = bag
         self.letters = letters if letters else [bag.draw() for _ in range(7)]
         self.solver = solver
+        self.score = 0
 
     def take_turn(self):
         solution = self.solver.solve(self.board, self.letters)
@@ -331,10 +386,11 @@ class Player:
                 self.letters.append(self.bag.draw())
         for spot in solution.word:
             self.board.set_letter(spot.row, spot.col, spot.letter)
+        self.score += solution.score
         return True
 
     def __str__(self):
-        return ' '.join([str(letter) for letter in self.letters])
+        return f'score: {self.score}, letters: ' + ' '.join([str(letter) for letter in self.letters])
 
 
 def make_game(board_letters=None, bag_letters=None, turn=1, player_letters=[None, None], dictionary='dictionary.txt'):
@@ -362,6 +418,7 @@ if __name__ == '__main__':
     game_start = timeit.default_timer()
     while keep_going:
         turn_start = timeit.default_timer()
+        # TODO: should really keep going until nobody has a solution
         keep_going = game.next_player().take_turn()
         print(game)
         now = timeit.default_timer()

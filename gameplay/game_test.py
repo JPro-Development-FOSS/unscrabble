@@ -110,5 +110,32 @@ class TestPlayer(unittest.TestCase):
         print(g.board)
 
 
+class TestBugs(unittest.TestCase):
+    def test_aleez(self):
+        # TODO(bug): _ L E _ Z, played A E, expanded down to ALEE instead of ALEEZ
+
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - - - - - - - - -
+        # - - - - - - - L - - - - - - -
+        # - - - - - - Q I - - - - - - -
+        # - - - - - O I - - - - - - - -
+        # - - - - B Y - - - - - - - - -
+        # - - - L O - - - - - - - - - -
+        # - - - E F - - C - - - - - - -
+        # - - - - F - - A - - - - - - -
+        # - - - Z E I N S - - - - - - -
+        # - - - - D - - E - - - - - - -
+        # 
+        # bag: W N E T E U O H S E O P T A T L R N B O T S W R V Y H E L U A S P A C N E E D I K O N I I V T M U D T A A M I _ A R G D G R I O E
+        # turn: 8
+        #   p0: score: 101, letters: R X N A E E O
+        # * p1: score: 70, letters: J U _ I A G R
+        # 
+        pass
+
 if __name__ == '__main__':
     unittest.main()

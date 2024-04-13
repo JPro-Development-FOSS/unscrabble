@@ -108,6 +108,7 @@ class Board:
         # self.reaches_valid = False
 
     def score(self, expanded_spotted_words, i, j, direction):
+        # TODO: score bingos (all 7 letters on rack played)
         expanded_total = 0
         for word in expanded_spotted_words:
             word_multiplier = 1
@@ -233,6 +234,7 @@ class Board:
                     left.reverse()
                     words.append(left + [ExpandedSpot(Spot(i+k, j, letter), fresh=True)] + right)
                 k+=1
+            # TODO(bug): _ L E _ Z, played A E, expanded down to ALEE instead of ALEEZ
             word += gather_down(i+k, j)
             words.append(word)
 
@@ -368,12 +370,53 @@ class Solver:
         pprint.pprint(solution)
         return solution
 
+class Validator:
+    def __init__(self, board, solver):
+        self.board = board
+        self.solver = solver
+
+    def valid(self):
+        for i in range(ROWS):
+            current = ''
+            for j in range(COLS):
+                letter = self.board.spots[i][j].letter
+                if letter == None:
+                    if current != '':
+                        if current not in self.solver.words:
+                            print(f'invalid right near {i},{j}: {current}')
+                            return False
+                        current = ''
+                else:
+                    # TODO: figure out why letter.letter is ever None here (test_take_turn)
+                    current += letter.letter if letter.letter else ''
+            if current != '' and current not in self.solver.words:
+                print(f'invalid right near {i},?: {current}')
+                return False
+        for j in range(COLS):
+            current = ''
+            for i in range(ROWS):
+                letter = self.board.spots[i][j].letter
+                if letter == None:
+                    if current != '':
+                        if current not in self.solver.words:
+                            print(f'invalid down near {i},{j}: {current}')
+                            return False
+                        current = ''
+                else:
+                    # TODO: figure out why letter.letter is ever None here (test_take_turn)
+                    current += letter.letter if letter.letter else ''
+            if current != '' and current not in self.solver.words:
+                print(f'invalid right near ?,{j}: {current}')
+                return False
+        return True
+
 class Player:
-    def __init__(self, board, bag, letters=None, solver=None):
+    def __init__(self, board, bag, letters=None, solver=None, validator=None):
         self.board = board
         self.bag = bag
         self.letters = letters if letters else [bag.draw() for _ in range(7)]
         self.solver = solver
+        self.validator = validator
         self.score = 0
 
     def take_turn(self):
@@ -387,7 +430,7 @@ class Player:
         for spot in solution.word:
             self.board.set_letter(spot.row, spot.col, spot.letter)
         self.score += solution.score
-        return True
+        return self.validator.valid() if self.validator else True
 
     def __str__(self):
         return f'score: {self.score}, letters: ' + ' '.join([str(letter) for letter in self.letters])
@@ -405,9 +448,10 @@ def make_game(board_letters=None, bag_letters=None, turn=1, player_letters=[None
         bag.bag = [Letter(letter) for letter in bag_letters.split(' ')]
     word_loader = WordLoader(dictionary)
     solver = Solver(word_loader.words)
+    validator = Validator(board, solver)
     if player_letters != [None, None]:
         player_letters = [[Letter(letter) for letter in player_letter.split(' ')] for player_letter in player_letters]
-    players = [Player(board, bag, letters=player_letters[i], solver=solver) for i in range(2)]
+    players = [Player(board, bag, letters=player_letters[i], solver=solver, validator=validator) for i in range(2)]
     game = Game(board, bag, players)
     game.turn = turn-1
     return game

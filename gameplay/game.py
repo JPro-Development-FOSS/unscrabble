@@ -382,14 +382,14 @@ class Validator:
                 letter = self.board.spots[i][j].letter
                 if letter == None:
                     if current != '':
-                        if current not in self.solver.words:
+                        if len(current) > 1 and current not in self.solver.words:
                             print(f'invalid right near {i},{j}: {current}')
                             return False
                         current = ''
                 else:
                     # TODO: figure out why letter.letter is ever None here (test_take_turn)
                     current += letter.letter if letter.letter else ''
-            if current != '' and current not in self.solver.words:
+            if current != '' and len(current) > 1 and current not in self.solver.words:
                 print(f'invalid right near {i},?: {current}')
                 return False
         for j in range(COLS):
@@ -398,14 +398,14 @@ class Validator:
                 letter = self.board.spots[i][j].letter
                 if letter == None:
                     if current != '':
-                        if current not in self.solver.words:
+                        if len(current) > 1 and current not in self.solver.words:
                             print(f'invalid down near {i},{j}: {current}')
                             return False
                         current = ''
                 else:
                     # TODO: figure out why letter.letter is ever None here (test_take_turn)
                     current += letter.letter if letter.letter else ''
-            if current != '' and current not in self.solver.words:
+            if current != '' and len(current) > 1 and current not in self.solver.words:
                 print(f'invalid right near ?,{j}: {current}')
                 return False
         return True
